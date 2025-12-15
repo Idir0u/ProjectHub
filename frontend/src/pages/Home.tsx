@@ -17,6 +17,9 @@ const Home = () => {
           <a className="btn btn-ghost text-xl text-white">📋 ProjectHub</a>
         </div>
         <div className="flex-none">
+          <button className="btn btn-outline btn-sm text-white mr-2" onClick={() => navigate('/register')}>
+            Sign Up
+          </button>
           <button className="btn btn-ghost text-white" onClick={() => navigate('/login')}>
             Login
           </button>

@@ -2,6 +2,7 @@ package com.projecthub.service;
 
 import com.projecthub.dto.LoginRequest;
 import com.projecthub.dto.LoginResponse;
+import com.projecthub.dto.RegisterRequest;
 import com.projecthub.exception.BadCredentialsException;
 import com.projecthub.model.User;
 import com.projecthub.repository.UserRepository;
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * Service for handling authentication operations.
- * Manages user login and JWT token generation.
+ * Manages user login, registration and JWT token generation.
  */
 @Service
 @RequiredArgsConstructor
@@ -24,6 +25,33 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
+
+    /**
+     * Register a new user.
+     *
+     * @param registerRequest registration details
+     * @return LoginResponse with JWT token and user info
+     * @throws IllegalArgumentException if email already exists
+     */
+    @Transactional
+    public LoginResponse register(RegisterRequest registerRequest) {
+        log.debug("Attempting registration for user: {}", registerRequest.getEmail());
+
+        if (userRepository.existsByEmail(registerRequest.getEmail())) {
+            throw new IllegalArgumentException("Email already registered");
+        }
+
+        User user = User.builder()
+                .email(registerRequest.getEmail())
+                .password(passwordEncoder.encode(registerRequest.getPassword()))
+                .build();
+
+        user = userRepository.save(user);
+        log.info("User registered successfully: {}", user.getEmail());
+
+        String token = jwtUtil.generateToken(user.getEmail(), user.getId());
+        return new LoginResponse(token, user.getId(), user.getEmail());
+    }
 
     /**
      * Authenticate user and return JWT token.

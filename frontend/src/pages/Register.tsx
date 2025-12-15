@@ -3,9 +3,10 @@ import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { authApi } from '../services/apiService';
 
-const Login = () => {
+const Register = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
@@ -14,14 +15,25 @@ const Login = () => {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const response = await authApi.login({ email, password });
+      const response = await authApi.register({ email, password });
       login(response.token, { id: response.userId, email: response.email });
       navigate('/dashboard');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Invalid email or password');
+      setError(err.response?.data?.message || 'Registration failed. Email may already be registered.');
     } finally {
       setLoading(false);
     }
@@ -34,7 +46,7 @@ const Login = () => {
           <h2 className="card-title text-3xl font-bold text-center justify-center mb-4">
             📋 ProjectHub
           </h2>
-          <p className="text-center text-gray-600 mb-6">Task Management System</p>
+          <p className="text-center text-gray-600 mb-6">Create your account</p>
 
           <form onSubmit={handleSubmit}>
             <div className="form-control">
@@ -57,10 +69,24 @@ const Login = () => {
               </label>
               <input
                 type="password"
-                placeholder="password"
+                placeholder="At least 6 characters"
                 className="input input-bordered"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="form-control mt-4">
+              <label className="label">
+                <span className="label-text">Confirm Password</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Confirm your password"
+                className="input input-bordered"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
                 required
               />
             </div>
@@ -76,24 +102,18 @@ const Login = () => {
 
             <div className="form-control mt-6">
               <button type="submit" className={`btn btn-primary ${loading ? 'loading' : ''}`} disabled={loading}>
-                {loading ? 'Logging in...' : 'Login'}
+                {loading ? 'Creating account...' : 'Sign Up'}
               </button>
             </div>
           </form>
-
-          <div className="divider">Demo Credentials</div>
-          <div className="text-sm space-y-1">
-            <p><strong>Admin:</strong> admin@projecthub.com / admin123</p>
-            <p><strong>User:</strong> user@projecthub.com / user123</p>
-          </div>
 
           <div className="divider">OR</div>
 
           <div className="text-center">
             <p className="text-sm">
-              Don't have an account?{' '}
-              <Link to="/register" className="link link-primary">
-                Sign up here
+              Already have an account?{' '}
+              <Link to="/login" className="link link-primary">
+                Login here
               </Link>
             </p>
           </div>
@@ -103,4 +123,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

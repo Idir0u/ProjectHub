@@ -1,6 +1,7 @@
 import api from './api';
 import {
   LoginRequest,
+  RegisterRequest,
   LoginResponse,
   Project,
   ProjectDetail,
@@ -13,6 +14,11 @@ import {
 
 // Auth API
 export const authApi = {
+  register: async (credentials: RegisterRequest): Promise<LoginResponse> => {
+    const response = await api.post<LoginResponse>('/auth/register', credentials);
+    return response.data;
+  },
+
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
     const response = await api.post<LoginResponse>('/auth/login', credentials);
     return response.data;
