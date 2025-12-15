@@ -5,12 +5,14 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import ProjectDetail from './pages/ProjectDetail'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider } from './context/ThemeContext'
 import ProtectedRoute from './components/ProtectedRoute'
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <ThemeProvider>
+      <AuthProvider>
+        <Router>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
@@ -32,8 +34,9 @@ function App() {
             }
           />
         </Routes>
-      </Router>
-    </AuthProvider>
+        </Router>
+      </AuthProvider>
+    </ThemeProvider>
   )
 }
 
