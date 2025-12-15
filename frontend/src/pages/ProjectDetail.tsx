@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { projectsApi, tasksApi } from '../services/apiService';
-import { ProjectDetail, Task, ProgressResponse } from '../types';
+import { ProjectDetail, ProgressResponse } from '../types';
 
 const ProjectDetailPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -13,6 +13,9 @@ const ProjectDetailPage = () => {
   const [showModal, setShowModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', dueDate: '' });
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'name' | 'status'>('date');
 
   useEffect(() => {
     if (id) {
@@ -84,6 +87,41 @@ const ProjectDetailPage = () => {
       console.error('Error deleting task:', err);
     }
   };
+
+  // Filter and sort tasks
+  const filteredTasks = useMemo(() => {
+    if (!project) return [];
+
+    let filtered = project.tasks.filter((task) => {
+      const matchesSearch = 
+        task.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (task.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      
+      const matchesStatus = 
+        statusFilter === 'all' ||
+        (statusFilter === 'completed' && task.completed) ||
+        (statusFilter === 'active' && !task.completed);
+      
+      return matchesSearch && matchesStatus;
+    });
+
+    // Sort tasks
+    filtered.sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.title.localeCompare(b.title);
+      } else if (sortBy === 'status') {
+        return Number(a.completed) - Number(b.completed);
+      } else {
+        // Sort by date - if no dueDate, put at end
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime();
+      }
+    });
+
+    return filtered;
+  }, [project, searchQuery, statusFilter, sortBy]);
 
   if (loading) {
     return (
@@ -170,7 +208,121 @@ const ProjectDetailPage = () => {
           </button>
         </div>
 
-        {project.tasks.length === 0 ? (
+        {/* Search and Filter Bar */}
+        {project.tasks.length > 0 && (
+          <div className="card bg-base-200 border border-base-300 mb-6">
+            <div className="card-body p-4">
+              <div className="flex flex-col gap-4">
+                {/* Search Input */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      className="input input-bordered w-full pl-10"
+                      placeholder="Search tasks by title or description..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        <svg className="w-5 h-5 text-base-content/40 hover:text-base-content" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Filters Row */}
+                <div className="flex flex-col sm:flex-row gap-3">
+                  {/* Status Filter Tabs */}
+                  <div className="flex-1">
+                    <div className="tabs tabs-boxed bg-base-300">
+                      <button
+                        className={`tab ${statusFilter === 'all' ? 'tab-active' : ''}`}
+                        onClick={() => setStatusFilter('all')}
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        All ({project.tasks.length})
+                      </button>
+                      <button
+                        className={`tab ${statusFilter === 'active' ? 'tab-active' : ''}`}
+                        onClick={() => setStatusFilter('active')}
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Active ({project.tasks.filter(t => !t.completed).length})
+                      </button>
+                      <button
+                        className={`tab ${statusFilter === 'completed' ? 'tab-active' : ''}`}
+                        onClick={() => setStatusFilter('completed')}
+                      >
+                        <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        Completed ({project.tasks.filter(t => t.completed).length})
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Sort Dropdown */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-base-content/60 whitespace-nowrap">Sort by:</span>
+                    <select
+                      className="select select-bordered w-full sm:w-auto"
+                      value={sortBy}
+                      onChange={(e) => setSortBy(e.target.value as 'date' | 'name' | 'status')}
+                    >
+                      <option value="date">Due Date</option>
+                      <option value="name">Name (A-Z)</option>
+                      <option value="status">Status</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Results Counter */}
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-base-300">
+                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+                <span className="text-sm text-base-content/70">
+                  Showing <span className="font-semibold text-primary">{filteredTasks.length}</span> of <span className="font-semibold">{project.tasks.length}</span> task{project.tasks.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {filteredTasks.length === 0 && project.tasks.length > 0 ? (
+          <div className="card bg-base-200 border border-base-300">
+            <div className="card-body text-center py-16">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">No tasks found</h3>
+              <p className="text-base-content/60 mb-6">Try adjusting your search or filters</p>
+              <button className="btn btn-outline" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
+                Clear Filters
+              </button>
+            </div>
+          </div>
+        ) : project.tasks.length === 0 ? (
           <div className="card bg-base-200 border border-base-300">
             <div className="card-body text-center py-16">
               <div className="flex justify-center mb-6">
@@ -192,7 +344,7 @@ const ProjectDetailPage = () => {
           </div>
         ) : (
           <div className="space-y-3">
-            {project.tasks.map((task) => (
+            {filteredTasks.map((task) => (
               <div key={task.id} className="card bg-base-200 border border-base-300 hover:border-primary/50 transition-all duration-300">
                 <div className="card-body p-5">
                   <div className="flex items-start gap-4">

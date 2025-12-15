@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { projectsApi } from '../services/apiService';
@@ -10,6 +10,8 @@ const Dashboard = () => {
   const [showModal, setShowModal] = useState(false);
   const [newProject, setNewProject] = useState({ title: '', description: '' });
   const [error, setError] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sortBy, setSortBy] = useState<'date' | 'name'>('date');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,6 +28,28 @@ const Dashboard = () => {
       setLoading(false);
     }
   };
+
+  // Filter and sort projects
+  const filteredProjects = useMemo(() => {
+    let filtered = projects.filter((project) => {
+      const matchesSearch = 
+        project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (project.description?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false);
+      
+      return matchesSearch;
+    });
+
+    // Sort projects
+    filtered.sort((a, b) => {
+      if (sortBy === 'name') {
+        return a.title.localeCompare(b.title);
+      } else {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+    });
+
+    return filtered;
+  }, [projects, searchQuery, sortBy]);
 
   const handleCreateProject = async () => {
     if (!newProject.title.trim()) {
@@ -73,7 +97,84 @@ const Dashboard = () => {
           </button>
         </div>
 
-        {projects.length === 0 ? (
+        {/* Search and Filter Bar */}
+        {projects.length > 0 && (
+          <div className="card bg-base-200 border border-base-300 mb-6">
+            <div className="card-body p-4">
+              <div className="flex flex-col lg:flex-row gap-4">
+                {/* Search Input */}
+                <div className="flex-1">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="w-5 h-5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      className="input input-bordered w-full pl-10"
+                      placeholder="Search projects by title or description..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                    {searchQuery && (
+                      <button
+                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                        onClick={() => setSearchQuery('')}
+                      >
+                        <svg className="w-5 h-5 text-base-content/40 hover:text-base-content" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Sort Dropdown */}
+                <div className="flex items-center gap-2">
+                  <span className="text-sm font-medium text-base-content/60 whitespace-nowrap">Sort by:</span>
+                  <select
+                    className="select select-bordered w-full lg:w-auto"
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value as 'date' | 'name')}
+                  >
+                    <option value="date">Recent First</option>
+                    <option value="name">Name (A-Z)</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Results Counter */}
+              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-base-300">
+                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span className="text-sm text-base-content/70">
+                  Showing <span className="font-semibold text-primary">{filteredProjects.length}</span> of <span className="font-semibold">{projects.length}</span> project{projects.length !== 1 ? 's' : ''}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {filteredProjects.length === 0 && projects.length > 0 ? (
+          <div className="card bg-base-200 border border-base-300">
+            <div className="card-body text-center py-16">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">No projects found</h3>
+              <p className="text-base-content/60 mb-6">Try adjusting your search query</p>
+              <button className="btn btn-outline" onClick={() => setSearchQuery('')}>
+                Clear Search
+              </button>
+            </div>
+          </div>
+        ) : projects.length === 0 ? (
           <div className="card bg-base-200 border border-base-300">
             <div className="card-body text-center py-16">
               <div className="flex justify-center mb-6">
@@ -95,7 +196,7 @@ const Dashboard = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {projects.map((project) => (
+            {filteredProjects.map((project) => (
               <div
                 key={project.id}
                 className="card bg-base-200 border border-base-300 hover:border-primary/50 hover:shadow-xl transition-all duration-300 cursor-pointer group"
