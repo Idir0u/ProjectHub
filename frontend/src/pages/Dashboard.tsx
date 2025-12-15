@@ -56,38 +56,67 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="min-h-screen bg-base-100">
       <Navbar />
       
-      <div className="container mx-auto p-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">My Projects</h1>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            + New Project
+      <div className="container mx-auto p-4 lg:p-8">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
+          <div>
+            <h1 className="text-4xl font-bold mb-2">My Projects</h1>
+            <p className="text-base-content/60">Manage and track your projects</p>
+          </div>
+          <button className="btn btn-primary gap-2" onClick={() => setShowModal(true)}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            New Project
           </button>
         </div>
 
         {projects.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-xl text-gray-500 mb-4">No projects yet</p>
-            <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-              Create Your First Project
-            </button>
+          <div className="card bg-base-200 border border-base-300">
+            <div className="card-body text-center py-16">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">No projects yet</h3>
+              <p className="text-base-content/60 mb-6">Get started by creating your first project</p>
+              <button className="btn btn-primary btn-lg gap-2" onClick={() => setShowModal(true)}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
+                Create Your First Project
+              </button>
+            </div>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {projects.map((project) => (
               <div
                 key={project.id}
-                className="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow cursor-pointer"
+                className="card bg-base-200 border border-base-300 hover:border-primary/50 hover:shadow-xl transition-all duration-300 cursor-pointer group"
                 onClick={() => navigate(`/projects/${project.id}`)}
               >
                 <div className="card-body">
-                  <h2 className="card-title">{project.title}</h2>
-                  <p className="text-gray-600">{project.description || 'No description'}</p>
-                  <div className="card-actions justify-end mt-4">
-                    <span className="text-sm text-gray-500">
-                      Created: {new Date(project.createdAt).toLocaleDateString()}
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h2 className="card-title text-xl group-hover:text-primary transition-colors">{project.title}</h2>
+                  <p className="text-base-content/60 line-clamp-2">{project.description || 'No description'}</p>
+                  <div className="flex items-center gap-2 mt-4 pt-4 border-t border-base-300">
+                    <svg className="w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span className="text-sm text-base-content/60">
+                      {new Date(project.createdAt).toLocaleDateString()}
                     </span>
                   </div>
                 </div>

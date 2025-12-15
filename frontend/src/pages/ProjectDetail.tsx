@@ -108,83 +108,129 @@ const ProjectDetailPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-base-200">
+    <div className="min-h-screen bg-base-100">
       <Navbar />
       
-      <div className="container mx-auto p-6">
-        <button className="btn btn-ghost mb-4" onClick={() => navigate('/dashboard')}>
-          ← Back to Projects
+      <div className="container mx-auto p-4 lg:p-8">
+        <button className="btn btn-ghost gap-2 mb-6" onClick={() => navigate('/dashboard')}>
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Back to Projects
         </button>
 
-        <div className="card bg-base-100 shadow-xl mb-6">
-          <div className="card-body">
-            <h1 className="card-title text-3xl">{project.title}</h1>
-            <p className="text-gray-600">{project.description || 'No description'}</p>
+        <div className="card bg-base-200 border border-base-300 mb-8">
+          <div className="card-body p-6 lg:p-8">
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h1 className="text-4xl font-bold mb-3">{project.title}</h1>
+                <p className="text-base-content/60 text-lg">{project.description || 'No description'}</p>
+              </div>
+              <div className="w-14 h-14 bg-primary/10 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-7 h-7 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z" />
+                </svg>
+              </div>
+            </div>
             
             {progress && (
-              <div className="mt-4">
-                <div className="flex justify-between mb-2">
-                  <span className="text-sm font-medium">Progress</span>
-                  <span className="text-sm font-medium">{progress.progressPercentage.toFixed(0)}%</span>
+              <div className="bg-base-100 rounded-xl p-6 border border-base-300">
+                <div className="flex justify-between items-center mb-3">
+                  <span className="text-sm font-semibold uppercase tracking-wide text-base-content/60">Project Progress</span>
+                  <span className="text-2xl font-bold text-primary">{progress.progressPercentage.toFixed(0)}%</span>
                 </div>
                 <progress 
-                  className="progress progress-primary w-full" 
+                  className="progress progress-primary w-full h-3" 
                   value={progress.progressPercentage} 
                   max="100"
                 ></progress>
-                <p className="text-sm text-gray-500 mt-2">
-                  {progress.completedTasks} of {progress.totalTasks} tasks completed
-                </p>
+                <div className="flex items-center gap-2 mt-3">
+                  <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-sm text-base-content/70">
+                    <span className="font-semibold">{progress.completedTasks}</span> of <span className="font-semibold">{progress.totalTasks}</span> tasks completed
+                  </p>
+                </div>
               </div>
             )}
           </div>
         </div>
 
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold">Tasks</h2>
-          <button className="btn btn-primary" onClick={() => setShowModal(true)}>
-            + Add Task
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+          <div>
+            <h2 className="text-3xl font-bold">Tasks</h2>
+            <p className="text-base-content/60">Manage your project tasks</p>
+          </div>
+          <button className="btn btn-primary gap-2" onClick={() => setShowModal(true)}>
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Task
           </button>
         </div>
 
         {project.tasks.length === 0 ? (
-          <div className="card bg-base-100 shadow-xl">
-            <div className="card-body text-center">
-              <p className="text-xl text-gray-500 mb-4">No tasks yet</p>
-              <button className="btn btn-primary" onClick={() => setShowModal(true)}>
+          <div className="card bg-base-200 border border-base-300">
+            <div className="card-body text-center py-16">
+              <div className="flex justify-center mb-6">
+                <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center">
+                  <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                </div>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">No tasks yet</h3>
+              <p className="text-base-content/60 mb-6">Start by adding your first task to this project</p>
+              <button className="btn btn-primary btn-lg gap-2" onClick={() => setShowModal(true)}>
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                </svg>
                 Create Your First Task
               </button>
             </div>
           </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             {project.tasks.map((task) => (
-              <div key={task.id} className="card bg-base-100 shadow-xl">
-                <div className="card-body">
+              <div key={task.id} className="card bg-base-200 border border-base-300 hover:border-primary/50 transition-all duration-300">
+                <div className="card-body p-5">
                   <div className="flex items-start gap-4">
-                    <input
-                      type="checkbox"
-                      className="checkbox checkbox-primary mt-1"
-                      checked={task.completed}
-                      onChange={() => handleToggleTask(task.id, task.completed)}
-                    />
-                    <div className="flex-1">
-                      <h3 className={`text-lg font-semibold ${task.completed ? 'line-through text-gray-500' : ''}`}>
+                    <div className="flex-shrink-0 pt-1">
+                      <input
+                        type="checkbox"
+                        className="checkbox checkbox-primary checkbox-lg"
+                        checked={task.completed}
+                        onChange={() => handleToggleTask(task.id, task.completed)}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h3 className={`text-lg font-semibold mb-1 ${task.completed ? 'line-through text-base-content/40' : 'text-base-content'}`}>
                         {task.title}
                       </h3>
                       {task.description && (
-                        <p className="text-gray-600 mt-1">{task.description}</p>
+                        <p className={`text-sm mb-3 ${task.completed ? 'text-base-content/30' : 'text-base-content/60'}`}>
+                          {task.description}
+                        </p>
                       )}
                       {task.dueDate && (
-                        <p className="text-sm text-gray-500 mt-2">
-                          Due: {new Date(task.dueDate).toLocaleDateString()}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          <span className="text-sm text-base-content/60">
+                            Due: {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                          </span>
+                        </div>
                       )}
                     </div>
                     <button 
-                      className="btn btn-ghost btn-sm text-error"
+                      className="btn btn-ghost btn-sm text-error hover:bg-error/10 gap-2 flex-shrink-0"
                       onClick={() => handleDeleteTask(task.id)}
                     >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
                       Delete
                     </button>
                   </div>

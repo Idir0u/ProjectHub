@@ -42,7 +42,7 @@ const Register = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-base-200 relative">
+    <div className="min-h-screen flex items-center justify-center bg-base-100 relative">
       {/* Theme Toggle */}
       <button
         onClick={toggleTheme}
@@ -59,12 +59,19 @@ const Register = () => {
           </svg>
         )}
       </button>
-      <div className="card w-96 bg-base-100 shadow-xl">
-        <div className="card-body">
-          <h2 className="card-title text-3xl font-bold text-center justify-center mb-4">
-            📋 ProjectHub
-          </h2>
-          <p className="text-center text-gray-600 mb-6">Create your account</p>
+      <div className="card w-full max-w-md bg-base-200 border border-base-300">
+        <div className="card-body p-8">
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center">
+                <svg className="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+                </svg>
+              </div>
+            </div>
+            <h2 className="text-3xl font-bold mb-2">Create Account</h2>
+            <p className="text-base-content/60">Join ProjectHub today</p>
+          </div>
 
           <form onSubmit={handleSubmit}>
             <div className="form-control">
