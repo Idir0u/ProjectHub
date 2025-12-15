@@ -5,8 +5,8 @@ spring:
   # Database Configuration
   datasource:
     url: jdbc:postgresql://localhost:5432/projecthub
-    username: projecthub_user
-    password: projecthub_pass
+    username: postgres
+    password: postgres
     driver-class-name: org.postgresql.Driver
   
   # JPA/Hibernate Configuration
@@ -55,5 +55,5 @@ spring:
   
   datasource:
     url: jdbc:postgresql://db:5432/projecthub
-    username: projecthub_user
-    password: projecthub_pass
+    username: postgres
+    password: postgres
