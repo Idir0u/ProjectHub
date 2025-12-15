@@ -1,6 +1,7 @@
 package com.projecthub.controller;
 
 import com.projecthub.dto.UserStatsResponse;
+import com.projecthub.security.UserDetailsImpl;
 import com.projecthub.service.StatsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,8 +18,13 @@ public class StatsController {
 
     @GetMapping
     public ResponseEntity<UserStatsResponse> getUserStatistics(Authentication authentication) {
-        Long userId = Long.parseLong(authentication.getName());
+        Long userId = getUserIdFromAuth(authentication);
         UserStatsResponse stats = statsService.getUserStatistics(userId);
         return ResponseEntity.ok(stats);
+    }
+
+    private Long getUserIdFromAuth(Authentication authentication) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        return userDetails.getId();
     }
 }
