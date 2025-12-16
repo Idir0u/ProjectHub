@@ -49,19 +49,26 @@ public class DataInitializer implements CommandLineRunner {
 
     private void initializeSampleData() {
         User admin = userRepository.findByEmail("admin@projecthub.com").orElse(null);
-        if (admin == null) {
-            log.warn("Admin user not found, skipping sample data initialization");
+        User user = userRepository.findByEmail("user@projecthub.com").orElse(null);
+        
+        if (admin == null || user == null) {
+            log.warn("Demo users not found, skipping sample data initialization");
             return;
         }
 
-        // Check if data already exists
+        // Check if data already exists for admin
         if (projectRepository.findByUserId(admin.getId()).size() > 0) {
             log.info("Sample data already exists, skipping initialization");
             return;
         }
 
-        List<Project> projects = createProjects(admin);
-        log.info("Created {} projects with tasks", projects.size());
+        // Create projects for admin user
+        List<Project> adminProjects = createProjects(admin);
+        log.info("Created {} projects for admin user", adminProjects.size());
+        
+        // Create projects for regular user
+        List<Project> userProjects = createProjectsForRegularUser(user);
+        log.info("Created {} projects for regular user", userProjects.size());
     }
 
     private List<Project> createProjects(User user) {
@@ -207,5 +214,74 @@ public class DataInitializer implements CommandLineRunner {
             
             taskRepository.save(task);
         }
+    }
+
+    private List<Project> createProjectsForRegularUser(User user) {
+        List<Project> projects = new ArrayList<>();
+
+        // Project 1: Personal Website
+        Project website = createProject(user, "Personal Portfolio Website",
+            "Modern portfolio website showcasing projects and skills");
+        projects.add(website);
+        createTasks(website, new String[][]{
+            {"Design homepage mockup", "Create wireframe and visual design", "true", "-8"},
+            {"Setup React project", "Initialize project with TypeScript and Vite", "true", "-6"},
+            {"Build about section", "Add bio, skills, and experience", "true", "-3"},
+            {"Portfolio gallery", "Display projects with images and descriptions", "false", "5"},
+            {"Contact form integration", "Add email functionality", "false", "10"},
+            {"Deploy to Vercel", "Setup CI/CD and custom domain", "false", "15"}
+        });
+
+        // Project 2: Budget Tracker App
+        Project budget = createProject(user, "Budget Tracker App",
+            "Personal finance management tool with expense tracking");
+        projects.add(budget);
+        createTasks(budget, new String[][]{
+            {"Setup database schema", "Design tables for transactions and categories", "true", "-7"},
+            {"Create expense entry form", "UI for adding income and expenses", "true", "-4"},
+            {"Build dashboard", "Overview with charts and summaries", "true", "-2"},
+            {"Category management", "Add, edit, delete expense categories", "false", "6"},
+            {"Export to CSV", "Download transaction history", "false", "12"},
+            {"Monthly reports", "Generate spending analysis reports", "false", "18"}
+        });
+
+        // Project 3: Task Management Tool
+        Project taskTool = createProject(user, "Task Management Tool",
+            "Personal productivity app with task prioritization");
+        projects.add(taskTool);
+        createTasks(taskTool, new String[][]{
+            {"Design task board UI", "Kanban-style interface", "true", "-9"},
+            {"Implement task CRUD", "Create, read, update, delete tasks", "true", "-5"},
+            {"Add priority levels", "High, medium, low priority tags", "true", "-1"},
+            {"Due date reminders", "Email notifications for upcoming tasks", "false", "7"},
+            {"Dark mode support", "Toggle between light and dark themes", "false", "14"},
+            {"Mobile app version", "React Native implementation", "false", "21"}
+        });
+
+        // Project 4: Recipe Book
+        Project recipes = createProject(user, "Digital Recipe Book",
+            "Collection of favorite recipes with search and filters");
+        projects.add(recipes);
+        createTasks(recipes, new String[][]{
+            {"Recipe card design", "Create attractive recipe display", "true", "-6"},
+            {"Add recipe form", "Input ingredients, steps, and photos", "true", "-3"},
+            {"Search functionality", "Find recipes by name or ingredient", "false", "4"},
+            {"Recipe categories", "Organize by meal type and cuisine", "false", "9"},
+            {"Shopping list", "Generate list from recipe ingredients", "false", "16"}
+        });
+
+        // Project 5: Weather Dashboard
+        Project weather = createProject(user, "Weather Dashboard",
+            "Real-time weather information with forecasts");
+        projects.add(weather);
+        createTasks(weather, new String[][]{
+            {"Integrate weather API", "Connect to OpenWeatherMap API", "true", "-4"},
+            {"Display current weather", "Show temperature, conditions, humidity", "true", "-2"},
+            {"5-day forecast", "Show upcoming weather predictions", "false", "8"},
+            {"Location search", "Find weather for any city", "false", "13"},
+            {"Save favorites", "Store frequently checked locations", "false", "20"}
+        });
+
+        return projects;
     }
 }
