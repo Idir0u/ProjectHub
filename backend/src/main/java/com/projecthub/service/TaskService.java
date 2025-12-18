@@ -27,6 +27,8 @@ public class TaskService {
 
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
+    private final ProjectMemberService projectMemberService;
+    private final com.projecthub.repository.UserRepository userRepository;
 
     /**
      * Create a new task for a project.
@@ -41,7 +43,12 @@ public class TaskService {
     public TaskResponse createTask(Long projectId, CreateTaskRequest request, Long userId) {
         log.debug("Creating task for project ID: {} by user ID: {}", projectId, userId);
 
-        Project project = projectRepository.findByIdAndUserId(projectId, userId)
+        // Verify user is a member of the project
+        if (!projectMemberService.isMember(projectId, userId)) {
+            throw new NotFoundException("Project", "id", projectId);
+        }
+
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project", "id", projectId));
 
         Task task = Task.builder()
@@ -71,9 +78,10 @@ public class TaskService {
     public List<TaskResponse> getTasksByProject(Long projectId, Long userId) {
         log.debug("Fetching tasks for project ID: {} by user ID: {}", projectId, userId);
 
-        // Verify project ownership
-        projectRepository.findByIdAndUserId(projectId, userId)
-                .orElseThrow(() -> new NotFoundException("Project", "id", projectId));
+        // Verify user is a member of the project
+        if (!projectMemberService.isMember(projectId, userId)) {
+            throw new NotFoundException("Project", "id", projectId);
+        }
 
         List<Task> tasks = taskRepository.findByProjectId(projectId);
         log.info("Found {} tasks for project ID: {}", tasks.size(), projectId);
@@ -138,8 +146,64 @@ public class TaskService {
                 .dueDate(task.getDueDate())
                 .completed(task.getCompleted())
                 .projectId(task.getProject().getId())
+                .assignedToId(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null)
+                .assignedToEmail(task.getAssignedTo() != null ? task.getAssignedTo().getEmail() : null)
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .build();
+    }
+
+    /**
+     * Assign a task to a user.
+     */
+    @Transactional
+    public TaskResponse assignTask(Long taskId, Long assigneeId, Long userId) {
+        log.debug("Assigning task {} to user {}", taskId, assigneeId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new NotFoundException("Task", "id", taskId));
+
+        Long projectId = task.getProject().getId();
+
+        // Verify requester is a member
+        if (!projectMemberService.isMember(projectId, userId)) {
+            throw new IllegalArgumentException("You don't have access to this project");
+        }
+
+        // Verify assignee is a member of the project
+        if (!projectMemberService.isMember(projectId, assigneeId)) {
+            throw new IllegalArgumentException("Cannot assign task to non-member");
+        }
+
+        com.projecthub.model.User assignee = userRepository.findById(assigneeId)
+                .orElseThrow(() -> new NotFoundException("User", "id", assigneeId));
+
+        task.setAssignedTo(assignee);
+        task = taskRepository.save(task);
+        log.info("Task {} assigned to user {}", taskId, assigneeId);
+
+        return mapToTaskResponse(task);
+    }
+
+    /**
+     * Unassign a task.
+     */
+    @Transactional
+    public TaskResponse unassignTask(Long taskId, Long userId) {
+        log.debug("Unassigning task {}", taskId);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new NotFoundException("Task", "id", taskId));
+
+        // Verify user is a member of the project
+        if (!projectMemberService.isMember(task.getProject().getId(), userId)) {
+            throw new IllegalArgumentException("You don't have access to this project");
+        }
+
+        task.setAssignedTo(null);
+        task = taskRepository.save(task);
+        log.info("Task {} unassigned", taskId);
+
+        return mapToTaskResponse(task);
     }
 }

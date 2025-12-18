@@ -36,6 +36,9 @@ public class Project {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "invite_code", unique = true)
+    private String inviteCode;
+
     @OneToMany(mappedBy = "project", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Task> tasks = new ArrayList<>();

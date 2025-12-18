@@ -8,7 +8,10 @@ import com.projecthub.dto.TaskResponse;
 import com.projecthub.exception.NotFoundException;
 import com.projecthub.exception.UnauthorizedException;
 import com.projecthub.model.Project;
+import com.projecthub.model.ProjectMember;
+import com.projecthub.model.ProjectRole;
 import com.projecthub.model.User;
+import com.projecthub.repository.ProjectMemberRepository;
 import com.projecthub.repository.ProjectRepository;
 import com.projecthub.repository.TaskRepository;
 import com.projecthub.repository.UserRepository;
@@ -32,6 +35,7 @@ public class ProjectService {
     private final ProjectRepository projectRepository;
     private final UserRepository userRepository;
     private final TaskRepository taskRepository;
+    private final ProjectMemberService projectMemberService;
 
     /**
      * Create a new project for the authenticated user.
@@ -56,6 +60,9 @@ public class ProjectService {
         Project savedProject = projectRepository.save(project);
         log.info("Project created successfully: ID={}, Title={}", savedProject.getId(), savedProject.getTitle());
 
+        // Automatically add creator as project owner
+        projectMemberService.addCreatorAsOwner(savedProject.getId(), userId);
+
         return mapToProjectResponse(savedProject);
     }
 
@@ -69,10 +76,21 @@ public class ProjectService {
     public List<ProjectResponse> getUserProjects(Long userId) {
         log.debug("Fetching projects for user ID: {}", userId);
 
-        List<Project> projects = projectRepository.findByUserId(userId);
-        log.info("Found {} projects for user ID: {}", projects.size(), userId);
+        // Get all projects user owns (original behavior)
+        List<Project> ownedProjects = projectRepository.findByUserId(userId);
+        
+        // Get all projects user is a member of
+        List<Project> memberProjects = projectMemberService.getUserMemberProjects(userId);
+        
+        // Combine and deduplicate
+        List<Project> allProjects = new java.util.ArrayList<>(ownedProjects);
+        memberProjects.stream()
+            .filter(p -> !ownedProjects.contains(p))
+            .forEach(allProjects::add);
+        
+        log.info("Found {} projects for user ID: {}", allProjects.size(), userId);
 
-        return projects.stream()
+        return allProjects.stream()
                 .map(this::mapToProjectResponse)
                 .collect(Collectors.toList());
     }
@@ -88,7 +106,12 @@ public class ProjectService {
     public ProjectDetailResponse getProjectById(Long projectId, Long userId) {
         log.debug("Fetching project ID: {} for user ID: {}", projectId, userId);
 
-        Project project = projectRepository.findByIdAndUserId(projectId, userId)
+        // Check if user is a member of the project
+        if (!projectMemberService.isMember(projectId, userId)) {
+            throw new UnauthorizedException("You don't have access to this project");
+        }
+
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project", "id", projectId));
 
         return mapToProjectDetailResponse(project);
@@ -105,8 +128,12 @@ public class ProjectService {
     public ProgressResponse getProjectProgress(Long projectId, Long userId) {
         log.debug("Calculating progress for project ID: {} and user ID: {}", projectId, userId);
 
-        // Verify project ownership
-        Project project = projectRepository.findByIdAndUserId(projectId, userId)
+        // Verify user is a project member
+        if (!projectMemberService.isMember(projectId, userId)) {
+            throw new UnauthorizedException("You don't have access to this project");
+        }
+
+        Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project", "id", projectId));
 
         long totalTasks = taskRepository.countByProjectId(projectId);
@@ -151,6 +178,8 @@ public class ProjectService {
                         .dueDate(task.getDueDate())
                         .completed(task.getCompleted())
                         .projectId(task.getProject().getId())
+                        .assignedToId(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null)
+                        .assignedToEmail(task.getAssignedTo() != null ? task.getAssignedTo().getEmail() : null)
                         .createdAt(task.getCreatedAt())
                         .updatedAt(task.getUpdatedAt())
                         .build())

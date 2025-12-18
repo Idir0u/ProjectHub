@@ -30,4 +30,14 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
      * @return Optional containing the project if found and owned by user
      */
     Optional<Project> findByIdAndUserId(Long id, Long userId);
+
+    /**
+     * Find project by invite code.
+     */
+    Optional<Project> findByInviteCode(String inviteCode);
+
+    /**
+     * Check if invite code exists.
+     */
+    boolean existsByInviteCode(String inviteCode);
 }

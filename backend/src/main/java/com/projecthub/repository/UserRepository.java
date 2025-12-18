@@ -29,4 +29,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
      * @return true if user exists, false otherwise
      */
     boolean existsByEmail(String email);
+
+    /**
+     * Search users by email containing the search term (case-insensitive).
+     *
+     * @param email search term
+     * @return list of matching users
+     */
+    java.util.List<User> findByEmailContainingIgnoreCase(String email);
 }

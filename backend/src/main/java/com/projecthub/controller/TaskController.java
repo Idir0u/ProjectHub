@@ -1,5 +1,6 @@
 package com.projecthub.controller;
 
+import com.projecthub.dto.AssignTaskRequest;
 import com.projecthub.dto.CreateTaskRequest;
 import com.projecthub.dto.TaskResponse;
 import com.projecthub.dto.UpdateTaskRequest;
@@ -112,5 +113,45 @@ public class TaskController {
     private Long getUserIdFromAuth(Authentication authentication) {
         UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
         return userDetails.getId();
+    }
+
+    /**
+     * Assign a task to a user.
+     * PUT /api/tasks/{taskId}/assign
+     *
+     * @param taskId task ID
+     * @param request assignment details
+     * @param authentication authenticated user
+     * @return updated task
+     */
+    @PutMapping("/tasks/{taskId}/assign")
+    public ResponseEntity<TaskResponse> assignTask(
+            @PathVariable Long taskId,
+            @Valid @RequestBody AssignTaskRequest request,
+            Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        log.info("Assign task {} to user {} by user {}", taskId, request.getUserId(), userId);
+
+        TaskResponse response = taskService.assignTask(taskId, request.getUserId(), userId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Unassign a task.
+     * DELETE /api/tasks/{taskId}/assign
+     *
+     * @param taskId task ID
+     * @param authentication authenticated user
+     * @return updated task
+     */
+    @DeleteMapping("/tasks/{taskId}/assign")
+    public ResponseEntity<TaskResponse> unassignTask(
+            @PathVariable Long taskId,
+            Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        log.info("Unassign task {} by user {}", taskId, userId);
+
+        TaskResponse response = taskService.unassignTask(taskId, userId);
+        return ResponseEntity.ok(response);
     }
 }

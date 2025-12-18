@@ -23,6 +23,8 @@ public class TaskResponse {
     private LocalDate dueDate;
     private Boolean completed;
     private Long projectId;
+    private Long assignedToId;
+    private String assignedToEmail;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }
