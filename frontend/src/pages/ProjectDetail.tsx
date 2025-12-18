@@ -1,7 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
+import TaskItem from '../components/TaskItem';
+import MemberManagement from '../components/MemberManagement';
+import InviteUserModal from '../components/InviteUserModal';
+import InviteCodeModal from '../components/InviteCodeModal';
 import { projectsApi, tasksApi } from '../services/apiService';
+import { getProjectMembers } from '../services/api';
 import { ProjectDetail, ProgressResponse } from '../types';
 
 const ProjectDetailPage = () => {
@@ -11,16 +16,20 @@ const ProjectDetailPage = () => {
   const [progress, setProgress] = useState<ProgressResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false);
+  const [showCodeModal, setShowCodeModal] = useState(false);
   const [newTask, setNewTask] = useState({ title: '', description: '', dueDate: '' });
   const [error, setError] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'status'>('date');
+  const [userRole, setUserRole] = useState<string>();
 
   useEffect(() => {
     if (id) {
       loadProject();
       loadProgress();
+      loadUserRole();
     }
   }, [id]);
 
@@ -41,6 +50,19 @@ const ProjectDetailPage = () => {
       setProgress(data);
     } catch (err) {
       console.error('Error loading progress:', err);
+    }
+  };
+
+  const loadUserRole = async () => {
+    try {
+      const members = await getProjectMembers(Number(id));
+      const currentUserEmail = localStorage.getItem('userEmail');
+      const currentMember = members.find(m => m.userEmail === currentUserEmail);
+      if (currentMember) {
+        setUserRole(currentMember.role);
+      }
+    } catch (err) {
+      console.error('Error loading user role:', err);
     }
   };
 
@@ -195,6 +217,15 @@ const ProjectDetailPage = () => {
           </div>
         </div>
 
+        {/* Member Management Section */}
+        <div className="mb-8">
+          <MemberManagement
+            projectId={Number(id)}
+            onInviteClick={() => setShowInviteModal(true)}
+            onGenerateCode={() => setShowCodeModal(true)}
+          />
+        </div>
+
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <div>
             <h2 className="text-3xl font-bold">Tasks</h2>
@@ -345,49 +376,18 @@ const ProjectDetailPage = () => {
         ) : (
           <div className="space-y-3">
             {filteredTasks.map((task) => (
-              <div key={task.id} className="card bg-base-200 border border-base-300 hover:border-primary/50 transition-all duration-300">
-                <div className="card-body p-5">
-                  <div className="flex items-start gap-4">
-                    <div className="flex-shrink-0 pt-1">
-                      <input
-                        type="checkbox"
-                        className="checkbox checkbox-primary checkbox-lg"
-                        checked={task.completed}
-                        onChange={() => handleToggleTask(task.id, task.completed)}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h3 className={`text-lg font-semibold mb-1 ${task.completed ? 'line-through text-base-content/40' : 'text-base-content'}`}>
-                        {task.title}
-                      </h3>
-                      {task.description && (
-                        <p className={`text-sm mb-3 ${task.completed ? 'text-base-content/30' : 'text-base-content/60'}`}>
-                          {task.description}
-                        </p>
-                      )}
-                      {task.dueDate && (
-                        <div className="flex items-center gap-2">
-                          <svg className="w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                          <span className="text-sm text-base-content/60">
-                            Due: {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                    <button 
-                      className="btn btn-ghost btn-sm text-error hover:bg-error/10 gap-2 flex-shrink-0"
-                      onClick={() => handleDeleteTask(task.id)}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                      </svg>
-                      Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
+              <TaskItem
+                key={task.id}
+                task={task}
+                projectId={Number(id)}
+                currentUserRole={userRole}
+                onToggle={handleToggleTask}
+                onDelete={handleDeleteTask}
+                onAssignmentChange={() => {
+                  loadProject();
+                  loadProgress();
+                }}
+              />
             ))}
           </div>
         )}
@@ -457,6 +457,21 @@ const ProjectDetailPage = () => {
           </div>
         </div>
       )}
+
+      {/* Invite User Modal */}
+      <InviteUserModal
+        projectId={Number(id)}
+        isOpen={showInviteModal}
+        onClose={() => setShowInviteModal(false)}
+        onSuccess={loadProject}
+      />
+
+      {/* Invite Code Modal */}
+      <InviteCodeModal
+        projectId={Number(id)}
+        isOpen={showCodeModal}
+        onClose={() => setShowCodeModal(false)}
+      />
     </div>
   );
 };

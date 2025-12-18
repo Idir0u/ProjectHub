@@ -1,6 +1,7 @@
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 import { useNavigate } from 'react-router-dom';
+import InvitationsDropdown from './InvitationsDropdown';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -21,6 +22,10 @@ const Navbar = () => {
       </div>
       <div className="flex-none gap-2">
         <span className="text-sm mr-2 hidden md:block">Welcome, {user?.email}</span>
+        
+        {/* Invitations Dropdown */}
+        <InvitationsDropdown />
+        
         {/* Theme Toggle */}
         <button
           onClick={toggleTheme}

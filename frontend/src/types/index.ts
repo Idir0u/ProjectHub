@@ -42,6 +42,8 @@ export interface Task {
   projectId: number;
   createdAt: string;
   updatedAt: string;
+  assignedToId?: number;
+  assignedToEmail?: string;
 }
 
 export interface CreateProjectRequest {
