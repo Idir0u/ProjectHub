@@ -40,11 +40,24 @@ export interface Task {
   dueDate?: string;
   completed: boolean;
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  recurrencePattern: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  recurrenceEndDate?: string;
   projectId: number;
   createdAt: string;
   updatedAt: string;
   assignedToId?: number;
   assignedToEmail?: string;
+  tags?: Tag[];
+  dependsOnIds?: number[];
+  blockedByIds?: number[];
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+  color: string;
+  projectId: number;
 }
 
 export interface CreateProjectRequest {

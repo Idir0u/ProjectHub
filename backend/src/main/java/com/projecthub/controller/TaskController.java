@@ -1,10 +1,6 @@
 package com.projecthub.controller;
 
-import com.projecthub.dto.AssignTaskRequest;
-import com.projecthub.dto.CreateTaskRequest;
-import com.projecthub.dto.TaskResponse;
-import com.projecthub.dto.UpdateTaskRequest;
-import com.projecthub.dto.UpdateTaskStatusRequest;
+import com.projecthub.dto.*;
 import com.projecthub.security.UserDetailsImpl;
 import com.projecthub.service.TaskService;
 import jakarta.validation.Valid;
@@ -175,5 +171,35 @@ public class TaskController {
 
         TaskResponse response = taskService.updateTaskStatus(taskId, request.getStatus(), userId);
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Bulk complete tasks.
+     * POST /api/tasks/bulk/complete
+     */
+    @PostMapping("/tasks/bulk/complete")
+    public ResponseEntity<Void> bulkCompleteTasks(
+            @Valid @RequestBody BulkTaskRequest request,
+            Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        log.info("Bulk complete {} tasks by user {}", request.getTaskIds().size(), userId);
+
+        taskService.bulkCompleteTasks(request.getTaskIds(), userId);
+        return ResponseEntity.ok().build();
+    }
+
+    /**
+     * Bulk delete tasks.
+     * DELETE /api/tasks/bulk
+     */
+    @DeleteMapping("/tasks/bulk")
+    public ResponseEntity<Void> bulkDeleteTasks(
+            @Valid @RequestBody BulkTaskRequest request,
+            Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        log.info("Bulk delete {} tasks by user {}", request.getTaskIds().size(), userId);
+
+        taskService.bulkDeleteTasks(request.getTaskIds(), userId);
+        return ResponseEntity.noContent().build();
     }
 }

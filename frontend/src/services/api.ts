@@ -60,11 +60,24 @@ export interface Task {
   dueDate: string | null;
   completed: boolean;
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  recurrencePattern: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  recurrenceEndDate: string | null;
   projectId: number;
   assignedToId: number | null;
   assignedToEmail: string | null;
+  tags: Tag[];
+  dependsOnIds: number[];
+  blockedByIds: number[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface Tag {
+  id: number;
+  name: string;
+  color: string;
+  projectId: number;
 }
 
 export interface ProjectMember {
@@ -188,5 +201,22 @@ export const joinProjectByCode = (inviteCode: string) =>
 // User Search
 export const searchUsers = (email: string) =>
   api.get(`/users/search`, { params: { email } });
+
+// Tags
+export const getProjectTags = (projectId: number) =>
+  api.get(`/projects/${projectId}/tags`);
+
+export const createTag = (projectId: number, name: string, color: string) =>
+  api.post(`/projects/${projectId}/tags`, { name, color });
+
+export const deleteTag = (projectId: number, tagId: number) =>
+  api.delete(`/projects/${projectId}/tags/${tagId}`);
+
+// Bulk Operations
+export const bulkCompleteTasks = (taskIds: number[]) =>
+  api.post('/tasks/bulk/complete', { taskIds });
+
+export const bulkDeleteTasks = (taskIds: number[]) =>
+  api.delete('/tasks/bulk', { data: { taskIds } });
 
 export default api;

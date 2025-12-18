@@ -1,14 +1,13 @@
 package com.projecthub.service;
 
 import com.projecthub.dto.CreateTaskRequest;
+import com.projecthub.dto.TagDTO;
 import com.projecthub.dto.TaskResponse;
 import com.projecthub.dto.UpdateTaskRequest;
 import com.projecthub.exception.NotFoundException;
-import com.projecthub.model.Project;
-import com.projecthub.model.Task;
-import com.projecthub.model.TaskStatus;
-import com.projecthub.model.User;
+import com.projecthub.model.*;
 import com.projecthub.repository.ProjectRepository;
+import com.projecthub.repository.TagRepository;
 import com.projecthub.repository.TaskRepository;
 import com.projecthub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +15,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -31,7 +32,8 @@ public class TaskService {
     private final TaskRepository taskRepository;
     private final ProjectRepository projectRepository;
     private final ProjectMemberService projectMemberService;
-    private final com.projecthub.repository.UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final TagRepository tagRepository;
 
     /**
      * Create a new task for a project.
@@ -54,12 +56,29 @@ public class TaskService {
         Project project = projectRepository.findById(projectId)
                 .orElseThrow(() -> new NotFoundException("Project", "id", projectId));
 
+        // Load tags if provided
+        Set<Tag> tags = new HashSet<>();
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            tags = new HashSet<>(tagRepository.findAllById(request.getTagIds()));
+        }
+
+        // Load dependencies if provided
+        Set<Task> dependencies = new HashSet<>();
+        if (request.getDependsOnIds() != null && !request.getDependsOnIds().isEmpty()) {
+            dependencies = new HashSet<>(taskRepository.findAllById(request.getDependsOnIds()));
+        }
+
         Task task = Task.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .dueDate(request.getDueDate())
+                .priority(request.getPriority() != null ? request.getPriority() : TaskPriority.MEDIUM)
+                .recurrencePattern(request.getRecurrencePattern() != null ? request.getRecurrencePattern() : RecurrencePattern.NONE)
+                .recurrenceEndDate(request.getRecurrenceEndDate())
                 .completed(false)
                 .project(project)
+                .tags(tags)
+                .dependsOn(dependencies)
                 .build();
 
         Task savedTask = taskRepository.save(task);
@@ -142,6 +161,23 @@ public class TaskService {
      * Map Task entity to TaskResponse DTO.
      */
     private TaskResponse mapToTaskResponse(Task task) {
+        List<TagDTO> tagDTOs = task.getTags().stream()
+                .map(tag -> TagDTO.builder()
+                        .id(tag.getId())
+                        .name(tag.getName())
+                        .color(tag.getColor())
+                        .projectId(tag.getProject().getId())
+                        .build())
+                .collect(Collectors.toList());
+
+        List<Long> dependsOnIds = task.getDependsOn().stream()
+                .map(Task::getId)
+                .collect(Collectors.toList());
+
+        List<Long> blockedByIds = task.getBlockedBy().stream()
+                .map(Task::getId)
+                .collect(Collectors.toList());
+
         return TaskResponse.builder()
                 .id(task.getId())
                 .title(task.getTitle())
@@ -149,9 +185,15 @@ public class TaskService {
                 .dueDate(task.getDueDate())
                 .completed(task.getCompleted())
                 .status(task.getStatus())
+                .priority(task.getPriority())
+                .recurrencePattern(task.getRecurrencePattern())
+                .recurrenceEndDate(task.getRecurrenceEndDate())
                 .projectId(task.getProject().getId())
                 .assignedToId(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null)
                 .assignedToEmail(task.getAssignedTo() != null ? task.getAssignedTo().getEmail() : null)
+                .tags(tagDTOs)
+                .dependsOnIds(dependsOnIds)
+                .blockedByIds(blockedByIds)
                 .createdAt(task.getCreatedAt())
                 .updatedAt(task.getUpdatedAt())
                 .build();
@@ -240,5 +282,50 @@ public class TaskService {
         log.info("Task {} status updated to {}", taskId, status);
 
         return mapToTaskResponse(task);
+    }
+
+    /**
+     * Bulk complete tasks.
+     */
+    @Transactional
+    public void bulkCompleteTasks(List<Long> taskIds, Long userId) {
+        log.debug("Bulk completing {} tasks", taskIds.size());
+
+        List<Task> tasks = taskRepository.findAllById(taskIds);
+        
+        for (Task task : tasks) {
+            // Verify user is a member
+            if (!projectMemberService.isMember(task.getProject().getId(), userId)) {
+                continue; // Skip tasks user doesn't have access to
+            }
+            
+            // Check dependencies
+            boolean canComplete = task.getDependsOn().stream()
+                    .allMatch(Task::getCompleted);
+            
+            if (canComplete) {
+                task.setCompleted(true);
+                task.setStatus(TaskStatus.DONE);
+            }
+        }
+        
+        taskRepository.saveAll(tasks);
+        log.info("Bulk completed {} tasks", tasks.size());
+    }
+
+    /**
+     * Bulk delete tasks.
+     */
+    @Transactional
+    public void bulkDeleteTasks(List<Long> taskIds, Long userId) {
+        log.debug("Bulk deleting {} tasks", taskIds.size());
+
+        List<Task> tasks = taskRepository.findAllById(taskIds);
+        List<Task> tasksToDelete = tasks.stream()
+                .filter(task -> projectMemberService.isMember(task.getProject().getId(), userId))
+                .collect(Collectors.toList());
+
+        taskRepository.deleteAll(tasksToDelete);
+        log.info("Bulk deleted {} tasks", tasksToDelete.size());
     }
 }

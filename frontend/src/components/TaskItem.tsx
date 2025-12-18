@@ -7,8 +7,12 @@ interface Task {
   description: string;
   dueDate: string;
   completed: boolean;
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   assignedToId?: number;
   assignedToEmail?: string;
+  tags?: Array<{id: number; name: string; color: string}>;
+  dependsOnIds?: number[];
+  blockedByIds?: number[];
 }
 
 interface ProjectMember {
@@ -100,6 +104,15 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
               </p>
             )}
             <div className="flex flex-wrap items-center gap-3">
+              {/* Priority Badge */}
+              <div className={`badge badge-sm ${
+                task.priority === 'HIGH' ? 'badge-error' : 
+                task.priority === 'MEDIUM' ? 'badge-warning' : 
+                'badge-ghost'
+              }`}>
+                {task.priority}
+              </div>
+
               {task.dueDate && (
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,6 +121,31 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
                   <span className="text-sm text-base-content/60">
                     Due: {new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </span>
+                </div>
+              )}
+
+              {/* Tags */}
+              {task.tags && task.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {task.tags.map((tag) => (
+                    <span
+                      key={tag.id}
+                      className="badge badge-sm"
+                      style={{ backgroundColor: tag.color, color: '#fff', borderColor: tag.color }}
+                    >
+                      {tag.name}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {/* Dependencies Warning */}
+              {task.dependsOnIds && task.dependsOnIds.length > 0 && (
+                <div className="badge badge-sm badge-info gap-1">
+                  <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                  {task.dependsOnIds.length} dep.
                 </div>
               )}
               

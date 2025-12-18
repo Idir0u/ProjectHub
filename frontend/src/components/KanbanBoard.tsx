@@ -8,7 +8,9 @@ interface Task {
   dueDate?: string;
   completed: boolean;
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
   assignedToEmail?: string;
+  tags?: Array<{id: number; name: string; color: string}>;\n  dependsOnIds?: number[];
 }
 
 interface KanbanBoardProps {
@@ -120,6 +122,9 @@ const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => 
 
                                 {/* Task Metadata */}
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
+                                  {/* Priority Badge */}
+                                  <div className={`badge badge-xs ${\n                                    task.priority === 'HIGH' ? 'badge-error' : \n                                    task.priority === 'MEDIUM' ? 'badge-warning' : \n                                    'badge-ghost'\n                                  }`}>\n                                    {task.priority}\n                                  </div>
+
                                   {task.dueDate && (
                                     <div className="flex items-center gap-1 text-base-content/60">
                                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,6 +133,10 @@ const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => 
                                       <span>{new Date(task.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
                                     </div>
                                   )}
+
+                                  {/* Tags */}
+                                  {task.tags && task.tags.map((tag) => (
+                                    <span\n                                      key={tag.id}\n                                      className="badge badge-xs"\n                                      style={{ backgroundColor: tag.color, color: '#fff', borderColor: tag.color }}\n                                    >\n                                      {tag.name}\n                                    </span>\n                                  ))}
 
                                   {task.assignedToEmail && (
                                     <div className="flex items-center gap-1 text-primary">
