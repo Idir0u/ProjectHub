@@ -1,5 +1,6 @@
 package com.projecthub.dto;
 
+import com.projecthub.model.TaskStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,6 +23,7 @@ public class TaskResponse {
     private String description;
     private LocalDate dueDate;
     private Boolean completed;
+    private TaskStatus status;
     private Long projectId;
     private Long assignedToId;
     private String assignedToEmail;

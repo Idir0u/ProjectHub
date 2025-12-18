@@ -59,6 +59,7 @@ export interface Task {
   description: string;
   dueDate: string | null;
   completed: boolean;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   projectId: number;
   assignedToId: number | null;
   assignedToEmail: string | null;
@@ -141,6 +142,9 @@ export const assignTask = (taskId: number, userId: number) =>
 
 export const unassignTask = (taskId: number) =>
   api.delete(`/tasks/${taskId}/assign`);
+
+export const updateTaskStatus = (taskId: number, status: 'TODO' | 'IN_PROGRESS' | 'DONE') =>
+  api.put(`/tasks/${taskId}/status`, { status });
 
 // Stats
 export const getUserStats = () => api.get('/stats');

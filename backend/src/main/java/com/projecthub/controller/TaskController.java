@@ -4,6 +4,7 @@ import com.projecthub.dto.AssignTaskRequest;
 import com.projecthub.dto.CreateTaskRequest;
 import com.projecthub.dto.TaskResponse;
 import com.projecthub.dto.UpdateTaskRequest;
+import com.projecthub.dto.UpdateTaskStatusRequest;
 import com.projecthub.security.UserDetailsImpl;
 import com.projecthub.service.TaskService;
 import jakarta.validation.Valid;
@@ -152,6 +153,27 @@ public class TaskController {
         log.info("Unassign task {} by user {}", taskId, userId);
 
         TaskResponse response = taskService.unassignTask(taskId, userId);
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Update task status (for Kanban board).
+     * PUT /api/tasks/{taskId}/status
+     *
+     * @param taskId task ID
+     * @param request status update request
+     * @param authentication authenticated user
+     * @return updated task
+     */
+    @PutMapping("/tasks/{taskId}/status")
+    public ResponseEntity<TaskResponse> updateTaskStatus(
+            @PathVariable Long taskId,
+            @Valid @RequestBody UpdateTaskStatusRequest request,
+            Authentication authentication) {
+        Long userId = getUserIdFromAuth(authentication);
+        log.info("Update task {} status to {} by user {}", taskId, request.getStatus(), userId);
+
+        TaskResponse response = taskService.updateTaskStatus(taskId, request.getStatus(), userId);
         return ResponseEntity.ok(response);
     }
 }

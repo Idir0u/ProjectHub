@@ -6,8 +6,11 @@ import com.projecthub.dto.UpdateTaskRequest;
 import com.projecthub.exception.NotFoundException;
 import com.projecthub.model.Project;
 import com.projecthub.model.Task;
+import com.projecthub.model.TaskStatus;
+import com.projecthub.model.User;
 import com.projecthub.repository.ProjectRepository;
 import com.projecthub.repository.TaskRepository;
+import com.projecthub.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -145,6 +148,7 @@ public class TaskService {
                 .description(task.getDescription())
                 .dueDate(task.getDueDate())
                 .completed(task.getCompleted())
+                .status(task.getStatus())
                 .projectId(task.getProject().getId())
                 .assignedToId(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null)
                 .assignedToEmail(task.getAssignedTo() != null ? task.getAssignedTo().getEmail() : null)
@@ -203,6 +207,37 @@ public class TaskService {
         task.setAssignedTo(null);
         task = taskRepository.save(task);
         log.info("Task {} unassigned", taskId);
+
+        return mapToTaskResponse(task);
+    }
+
+    /**
+     * Update task status (for Kanban board drag-and-drop).
+     */
+    @Transactional
+    public TaskResponse updateTaskStatus(Long taskId, TaskStatus status, Long userId) {
+        log.debug("Updating task {} status to {}", taskId, status);
+
+        Task task = taskRepository.findById(taskId)
+                .orElseThrow(() -> new NotFoundException("Task", "id", taskId));
+
+        // Verify user is a member of the project
+        if (!projectMemberService.isMember(task.getProject().getId(), userId)) {
+            throw new IllegalArgumentException("You don't have access to this project");
+        }
+
+        task.setStatus(status);
+        
+        // Auto-mark as completed when moved to DONE
+        if (status == TaskStatus.DONE) {
+            task.setCompleted(true);
+        } else if (task.getCompleted()) {
+            // Unmark completed if moved back to TODO or IN_PROGRESS
+            task.setCompleted(false);
+        }
+
+        task = taskRepository.save(task);
+        log.info("Task {} status updated to {}", taskId, status);
 
         return mapToTaskResponse(task);
     }

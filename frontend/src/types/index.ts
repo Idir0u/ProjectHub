@@ -39,6 +39,7 @@ export interface Task {
   description?: string;
   dueDate?: string;
   completed: boolean;
+  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   projectId: number;
   createdAt: string;
   updatedAt: string;

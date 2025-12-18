@@ -38,6 +38,11 @@ public class Task {
     @Builder.Default
     private Boolean completed = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @Builder.Default
+    private TaskStatus status = TaskStatus.TODO;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "project_id", nullable = false)
     private Project project;

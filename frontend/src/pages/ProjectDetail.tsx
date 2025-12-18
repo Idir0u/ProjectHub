@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import TaskItem from '../components/TaskItem';
+import KanbanBoard from '../components/KanbanBoard';
 import MemberManagement from '../components/MemberManagement';
 import InviteUserModal from '../components/InviteUserModal';
 import InviteCodeModal from '../components/InviteCodeModal';
@@ -24,6 +25,7 @@ const ProjectDetailPage = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'name' | 'status'>('date');
   const [userRole, setUserRole] = useState<string>();
+  const [viewMode, setViewMode] = useState<'list' | 'kanban'>('list');
 
   useEffect(() => {
     if (id) {
@@ -244,38 +246,65 @@ const ProjectDetailPage = () => {
           <div className="card bg-base-200 border border-base-300 mb-6">
             <div className="card-body p-4">
               <div className="flex flex-col gap-4">
-                {/* Search Input */}
-                <div className="flex-1">
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="w-5 h-5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                {/* View Mode Toggle */}
+                <div className="flex justify-between items-center">
+                  <div className="tabs tabs-boxed">
+                    <button
+                      className={`tab ${viewMode === 'list' ? 'tab-active' : ''}`}
+                      onClick={() => setViewMode('list')}
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
                       </svg>
-                    </div>
-                    <input
-                      type="text"
-                      className="input input-bordered w-full pl-10"
-                      placeholder="Search tasks by title or description..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                    {searchQuery && (
-                      <button
-                        className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                        onClick={() => setSearchQuery('')}
-                      >
-                        <svg className="w-5 h-5 text-base-content/40 hover:text-base-content" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
+                      List
+                    </button>
+                    <button
+                      className={`tab ${viewMode === 'kanban' ? 'tab-active' : ''}`}
+                      onClick={() => setViewMode('kanban')}
+                    >
+                      <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                      </svg>
+                      Kanban
+                    </button>
                   </div>
                 </div>
 
-                {/* Filters Row */}
-                <div className="flex flex-col sm:flex-row gap-3">
-                  {/* Status Filter Tabs */}
+                {/* Search Input - Only show in list view */}
+                {viewMode === 'list' && (
                   <div className="flex-1">
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                        </svg>
+                      </div>
+                      <input
+                        type="text"
+                        className="input input-bordered w-full pl-10"
+                        placeholder="Search tasks by title or description..."
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                      />
+                      {searchQuery && (
+                        <button
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          onClick={() => setSearchQuery('')}
+                        >
+                          <svg className="w-5 h-5 text-base-content/40 hover:text-base-content" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Filters Row - Only show in list view */}
+                {viewMode === 'list' && (
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    {/* Status Filter Tabs */}
+                    <div className="flex-1">
                     <div className="tabs tabs-boxed bg-base-300">
                       <button
                         className={`tab ${statusFilter === 'all' ? 'tab-active' : ''}`}
@@ -321,34 +350,50 @@ const ProjectDetailPage = () => {
                     </select>
                   </div>
                 </div>
+                )}
               </div>
 
-              {/* Results Counter */}
-              <div className="flex items-center gap-2 mt-3 pt-3 border-t border-base-300">
-                <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                </svg>
-                <span className="text-sm text-base-content/70">
-                  Showing <span className="font-semibold text-primary">{filteredTasks.length}</span> of <span className="font-semibold">{project.tasks.length}</span> task{project.tasks.length !== 1 ? 's' : ''}
-                </span>
-              </div>
+              {/* Results Counter - Only show in list view */}
+              {viewMode === 'list' && (
+                <div className="flex items-center gap-2 mt-3 pt-3 border-t border-base-300">
+                  <svg className="w-4 h-4 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                  </svg>
+                  <span className="text-sm text-base-content/70">
+                    Showing <span className="font-semibold text-primary">{filteredTasks.length}</span> of <span className="font-semibold">{project.tasks.length}</span> task{project.tasks.length !== 1 ? 's' : ''}
+                  </span>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {filteredTasks.length === 0 && project.tasks.length > 0 ? (
-          <div className="card bg-base-200 border border-base-300">
-            <div className="card-body text-center py-16">
-              <div className="flex justify-center mb-6">
-                <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center">
-                  <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
-                </div>
-              </div>
-              <h3 className="text-2xl font-bold mb-2">No tasks found</h3>
-              <p className="text-base-content/60 mb-6">Try adjusting your search or filters</p>
-              <button className="btn btn-outline" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
+        {/* Task Views */}
+        {viewMode === 'kanban' ? (
+          // Kanban Board View
+          <KanbanBoard
+            tasks={project.tasks}
+            onTaskUpdate={() => {
+              loadProject();
+              loadProgress();
+            }}
+          />
+        ) : (
+          // List View
+          <>
+            {filteredTasks.length === 0 && project.tasks.length > 0 ? (
+              <div className="card bg-base-200 border border-base-300">
+                <div className="card-body text-center py-16">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-20 h-20 bg-base-300 rounded-full flex items-center justify-center">
+                      <svg className="w-10 h-10 text-base-content/40" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                      </svg>
+                    </div>
+                  </div>
+                  <h3 className="text-2xl font-bold mb-2">No tasks found</h3>
+                  <p className="text-base-content/60 mb-6">Try adjusting your search or filters</p>
+                  <button className="btn btn-outline" onClick={() => { setSearchQuery(''); setStatusFilter('all'); }}>
                 Clear Filters
               </button>
             </div>
@@ -390,6 +435,8 @@ const ProjectDetailPage = () => {
               />
             ))}
           </div>
+        )}
+          </>
         )}
       </div>
 
