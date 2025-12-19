@@ -30,9 +30,12 @@ interface TaskItemProps {
   onToggle: (taskId: number, completed: boolean) => void;
   onDelete: (taskId: number) => void;
   onAssignmentChange?: () => void;
+  selectionMode?: boolean;
+  isSelected?: boolean;
+  onSelect?: (taskId: number) => void;
 }
 
-const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssignmentChange }: TaskItemProps) => {
+const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssignmentChange, selectionMode, isSelected, onSelect }: TaskItemProps) => {
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [showAssignMenu, setShowAssignMenu] = useState(false);
@@ -86,14 +89,30 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
     <div className="card bg-base-200 border border-base-300 hover:border-primary/50 transition-all duration-300">
       <div className="card-body p-5">
         <div className="flex items-start gap-4">
-          <div className="flex-shrink-0 pt-1">
-            <input
-              type="checkbox"
-              className="checkbox checkbox-primary checkbox-lg"
-              checked={task.completed}
-              onChange={() => onToggle(task.id, task.completed)}
-            />
-          </div>
+          {/* Selection Checkbox (shown in selection mode) */}
+          {selectionMode && (
+            <div className="flex-shrink-0 pt-1">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-primary checkbox-lg"
+                checked={isSelected}
+                onChange={() => onSelect?.(task.id)}
+              />
+            </div>
+          )}
+
+          {/* Completion Checkbox (shown when not in selection mode) */}
+          {!selectionMode && (
+            <div className="flex-shrink-0 pt-1">
+              <input
+                type="checkbox"
+                className="checkbox checkbox-primary checkbox-lg"
+                checked={task.completed}
+                onChange={() => onToggle(task.id, task.completed)}
+              />
+            </div>
+          )}
+
           <div className="flex-1 min-w-0">
             <h3 className={`text-lg font-semibold mb-1 ${task.completed ? 'line-through text-base-content/40' : 'text-base-content'}`}>
               {task.title}

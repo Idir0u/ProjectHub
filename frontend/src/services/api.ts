@@ -142,8 +142,19 @@ export const getProjectProgress = (projectId: number) =>
 export const getTasksByProject = (projectId: number) =>
   api.get(`/projects/${projectId}/tasks`);
 
-export const createTask = (projectId: number, title: string, description: string, dueDate: string | null) =>
-  api.post(`/projects/${projectId}/tasks`, { title, description, dueDate });
+export interface CreateTaskRequest {
+  title: string;
+  description?: string;
+  dueDate?: string;
+  priority?: 'LOW' | 'MEDIUM' | 'HIGH';
+  recurrencePattern?: 'NONE' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  recurrenceEndDate?: string;
+  tagIds?: number[];
+  dependsOnIds?: number[];
+}
+
+export const createTask = (projectId: number, data: CreateTaskRequest) =>
+  api.post(`/projects/${projectId}/tasks`, data);
 
 export const updateTask = (taskId: number, completed: boolean) =>
   api.patch(`/tasks/${taskId}`, { completed });
