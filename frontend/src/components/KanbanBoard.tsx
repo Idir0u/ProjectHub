@@ -10,7 +10,8 @@ interface Task {
   status: 'TODO' | 'IN_PROGRESS' | 'DONE';
   priority: 'LOW' | 'MEDIUM' | 'HIGH';
   assignedToEmail?: string;
-  tags?: Array<{id: number; name: string; color: string}>;\n  dependsOnIds?: number[];
+  tags?: Array<{id: number; name: string; color: string}>;
+  dependsOnIds?: number[];
 }
 
 interface KanbanBoardProps {
@@ -123,7 +124,13 @@ const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => 
                                 {/* Task Metadata */}
                                 <div className="flex flex-wrap items-center gap-2 text-xs">
                                   {/* Priority Badge */}
-                                  <div className={`badge badge-xs ${\n                                    task.priority === 'HIGH' ? 'badge-error' : \n                                    task.priority === 'MEDIUM' ? 'badge-warning' : \n                                    'badge-ghost'\n                                  }`}>\n                                    {task.priority}\n                                  </div>
+                                  <div className={`badge badge-xs ${
+                                    task.priority === 'HIGH' ? 'badge-error' : 
+                                    task.priority === 'MEDIUM' ? 'badge-warning' : 
+                                    'badge-ghost'
+                                  }`}>
+                                    {task.priority}
+                                  </div>
 
                                   {task.dueDate && (
                                     <div className="flex items-center gap-1 text-base-content/60">
@@ -136,7 +143,14 @@ const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => 
 
                                   {/* Tags */}
                                   {task.tags && task.tags.map((tag) => (
-                                    <span\n                                      key={tag.id}\n                                      className="badge badge-xs"\n                                      style={{ backgroundColor: tag.color, color: '#fff', borderColor: tag.color }}\n                                    >\n                                      {tag.name}\n                                    </span>\n                                  ))}
+                                    <span
+                                      key={tag.id}
+                                      className="badge badge-xs"
+                                      style={{ backgroundColor: tag.color, color: '#fff', borderColor: tag.color }}
+                                    >
+                                      {tag.name}
+                                    </span>
+                                  ))}
 
                                   {task.assignedToEmail && (
                                     <div className="flex items-center gap-1 text-primary">
