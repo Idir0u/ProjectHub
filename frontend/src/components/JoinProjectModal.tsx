@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { joinProjectByCode } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 interface JoinProjectModalProps {
   isOpen: boolean;
@@ -10,23 +11,24 @@ interface JoinProjectModalProps {
 const JoinProjectModal = ({ isOpen, onClose, onSuccess }: JoinProjectModalProps) => {
   const [inviteCode, setInviteCode] = useState('');
   const [loading, setLoading] = useState(false);
+  const toast = useToast();
 
   const handleJoin = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!inviteCode.trim()) {
-      alert('Please enter an invite code');
+      toast.warning('Please enter an invite code');
       return;
     }
 
     setLoading(true);
     try {
       await joinProjectByCode(inviteCode.trim().toUpperCase());
-      alert('Successfully joined the project!');
+      toast.success('Successfully joined the project!');
       onSuccess();
       handleClose();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Invalid invite code');
+      toast.error(error.response?.data?.message || 'Invalid invite code');
     } finally {
       setLoading(false);
     }

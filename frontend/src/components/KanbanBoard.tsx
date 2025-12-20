@@ -1,6 +1,7 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { updateTaskStatus } from '../services/api';
 import { Task } from '../types';
+import { useToast } from '../context/ToastContext';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -21,6 +22,8 @@ const columns: Column[] = [
 ];
 
 const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => {
+  const toast = useToast();
+  
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
 
@@ -40,10 +43,11 @@ const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => 
 
     try {
       await updateTaskStatus(taskId, newStatus);
+      toast.success('Task status updated');
       onTaskUpdate();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating task status:', error);
-      alert('Failed to update task status');
+      toast.error(error.response?.data?.message || 'Failed to update task status');
     }
   };
 

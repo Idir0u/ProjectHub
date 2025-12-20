@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { getPendingInvitations, acceptInvitation, declineInvitation } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 interface Invitation {
   id: number;
@@ -24,6 +25,7 @@ const InvitationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'declined'>('all');
+  const toast = useToast();
 
   useEffect(() => {
     loadInvitations();
@@ -42,6 +44,7 @@ const InvitationsPage = () => {
       setSentInvitations([]);
     } catch (err) {
       console.error('Error loading invitations:', err);
+      toast.error('Failed to load invitations');
     } finally {
       setLoading(false);
     }
@@ -50,22 +53,22 @@ const InvitationsPage = () => {
   const handleAccept = async (id: number) => {
     try {
       await acceptInvitation(id);
-      alert('Invitation accepted! You can now access the project.');
+      toast.success('Invitation accepted! You can now access the project.');
       loadInvitations();
     } catch (err) {
       console.error('Error accepting invitation:', err);
-      alert('Failed to accept invitation');
+      toast.error('Failed to accept invitation');
     }
   };
 
   const handleDecline = async (id: number) => {
     try {
       await declineInvitation(id);
-      alert('Invitation declined');
+      toast.success('Invitation declined');
       loadInvitations();
     } catch (err) {
       console.error('Error declining invitation:', err);
-      alert('Failed to decline invitation');
+      toast.error('Failed to decline invitation');
     }
   };
 

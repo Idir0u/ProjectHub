@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { generateInviteCode } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 interface InviteCodeModalProps {
   projectId: number;
@@ -11,14 +12,16 @@ const InviteCodeModal = ({ projectId, isOpen, onClose }: InviteCodeModalProps) =
   const [inviteCode, setInviteCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
+  const toast = useToast();
 
   const handleGenerate = async () => {
     setLoading(true);
     try {
       const response = await generateInviteCode(projectId);
       setInviteCode(response.data.inviteCode);
+      toast.success('Invite code generated!');
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to generate invite code');
+      toast.error(error.response?.data?.message || 'Failed to generate invite code');
     } finally {
       setLoading(false);
     }
@@ -28,6 +31,7 @@ const InviteCodeModal = ({ projectId, isOpen, onClose }: InviteCodeModalProps) =
     if (inviteCode) {
       navigator.clipboard.writeText(inviteCode);
       setCopied(true);
+      toast.success('Code copied to clipboard!');
       setTimeout(() => setCopied(false), 2000);
     }
   };

@@ -1,12 +1,14 @@
 import { useState, useEffect } from 'react';
 import { getPendingInvitations, acceptInvitation, declineInvitation, Invitation } from '../services/api';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '../context/ToastContext';
 
 const InvitationsDropdown = () => {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [isOpen, setIsOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const toast = useToast();
 
   useEffect(() => {
     loadInvitations();
@@ -28,11 +30,12 @@ const InvitationsDropdown = () => {
     setLoading(true);
     try {
       await acceptInvitation(invitationId);
+      toast.success('Invitation accepted!');
       await loadInvitations();
       // Refresh projects list
       window.location.reload();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to accept invitation');
+      toast.error(error.response?.data?.message || 'Failed to accept invitation');
     } finally {
       setLoading(false);
     }
@@ -42,9 +45,10 @@ const InvitationsDropdown = () => {
     setLoading(true);
     try {
       await declineInvitation(invitationId);
+      toast.success('Invitation declined');
       await loadInvitations();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to decline invitation');
+      toast.error(error.response?.data?.message || 'Failed to decline invitation');
     } finally {
       setLoading(false);
     }

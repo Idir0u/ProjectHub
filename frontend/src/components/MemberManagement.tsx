@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { getProjectMembers, removeMember, updateMemberRole, ProjectMember } from '../services/api';
+import { useToast } from '../context/ToastContext';
+import ConfirmDialog from './ConfirmDialog';
 
 interface MemberManagementProps {
   projectId: number;
@@ -10,7 +12,21 @@ interface MemberManagementProps {
 const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberManagementProps) => {
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [confirmDialog, setConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    type: 'warning' | 'info';
+    onConfirm: () => void;
+  }>({
+    isOpen: false,
+    title: '',
+    message: '',
+    type: 'warning',
+    onConfirm: () => {},
+  });
   const currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+  const toast = useToast();
 
   useEffect(() => {
     loadMembers();
@@ -22,20 +38,29 @@ const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberMa
       setMembers(response.data);
     } catch (error) {
       console.error('Failed to load members:', error);
+      toast.error('Failed to load team members');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveMember = async (userId: number, userEmail: string) => {
-    if (!confirm(`Remove ${userEmail} from this project?`)) return;
-
-    try {
-      await removeMember(projectId, userId);
-      await loadMembers();
-    } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to remove member');
-    }
+    setConfirmDialog({
+      isOpen: true,
+      title: 'Remove Team Member',
+      message: `Are you sure you want to remove ${userEmail} from this project?`,
+      type: 'warning',
+      onConfirm: async () => {
+        try {
+          await removeMember(projectId, userId);
+          toast.success('Member removed successfully');
+          await loadMembers();
+        } catch (error: any) {
+          toast.error(error.response?.data?.message || 'Failed to remove member');
+        }
+        setConfirmDialog({ ...confirmDialog, isOpen: false });
+      },
+    });
   };
 
   const handleChangeRole = async (userId: number, currentRole: string) => {
@@ -43,9 +68,10 @@ const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberMa
     
     try {
       await updateMemberRole(projectId, userId, newRole as 'ADMIN' | 'MEMBER');
+      toast.success(`Role updated to ${newRole}`);
       await loadMembers();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to update role');
+      toast.error(error.response?.data?.message || 'Failed to update role');
     }
   };
 
@@ -61,6 +87,15 @@ const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberMa
   }
 
   return (
+    <>
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title={confirmDialog.title}
+        message={confirmDialog.message}
+        type={confirmDialog.type}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog({ ...confirmDialog, isOpen: false })}
+      />
     <div className="card bg-base-200 border border-base-300 p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-xl font-semibold text-base-content">
@@ -158,6 +193,7 @@ const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberMa
         ))}
       </div>
     </div>
+    </>
   );
 };
 

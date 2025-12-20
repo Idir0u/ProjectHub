@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { assignTask, unassignTask, getProjectMembers } from '../services/api';
 import { Task } from '../types';
+import { useToast } from '../context/ToastContext';
 
 interface ProjectMember {
   id: number;
@@ -26,6 +27,7 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
   const [members, setMembers] = useState<ProjectMember[]>([]);
   const [isAssigning, setIsAssigning] = useState(false);
   const [showAssignMenu, setShowAssignMenu] = useState(false);
+  const toast = useToast();
 
   const canManageTasks = currentUserRole === 'OWNER' || currentUserRole === 'ADMIN';
 
@@ -49,10 +51,11 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
     try {
       await assignTask(task.id, userId);
       setShowAssignMenu(false);
+      toast.success('Task assigned successfully');
       onAssignmentChange?.();
     } catch (err) {
       console.error('Error assigning task:', err);
-      alert('Failed to assign task');
+      toast.error('Failed to assign task');
     } finally {
       setIsAssigning(false);
     }
@@ -63,10 +66,11 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
     try {
       await unassignTask(task.id);
       setShowAssignMenu(false);
+      toast.success('Task unassigned successfully');
       onAssignmentChange?.();
     } catch (err) {
       console.error('Error unassigning task:', err);
-      alert('Failed to unassign task');
+      toast.error('Failed to unassign task');
     } finally {
       setIsAssigning(false);
     }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { searchUsers, inviteUser, User } from '../services/api';
+import { useToast } from '../context/ToastContext';
 
 interface InviteUserModalProps {
   projectId: number;
@@ -15,6 +16,7 @@ const InviteUserModal = ({ projectId, isOpen, onClose, onSuccess }: InviteUserMo
   const [role, setRole] = useState<'ADMIN' | 'MEMBER'>('MEMBER');
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
+  const toast = useToast();
 
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
@@ -30,6 +32,7 @@ const InviteUserModal = ({ projectId, isOpen, onClose, onSuccess }: InviteUserMo
       setSearchResults(response.data);
     } catch (error) {
       console.error('Search failed:', error);
+      toast.error('Search failed');
     } finally {
       setSearching(false);
     }
@@ -41,11 +44,11 @@ const InviteUserModal = ({ projectId, isOpen, onClose, onSuccess }: InviteUserMo
     setLoading(true);
     try {
       await inviteUser(projectId, selectedUser.email, role);
-      alert(`Invitation sent to ${selectedUser.email}!`);
+      toast.success(`Invitation sent to ${selectedUser.email}!`);
       onSuccess();
       handleClose();
     } catch (error: any) {
-      alert(error.response?.data?.message || 'Failed to send invitation');
+      toast.error(error.response?.data?.message || 'Failed to send invitation');
     } finally {
       setLoading(false);
     }
