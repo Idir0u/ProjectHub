@@ -1,19 +1,6 @@
 import { useState, useEffect } from 'react';
 import { assignTask, unassignTask, getProjectMembers } from '../services/api';
-
-interface Task {
-  id: number;
-  title: string;
-  description: string;
-  dueDate: string;
-  completed: boolean;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  assignedToId?: number;
-  assignedToEmail?: string;
-  tags?: Array<{id: number; name: string; color: string}>;
-  dependsOnIds?: number[];
-  blockedByIds?: number[];
-}
+import { Task } from '../types';
 
 interface ProjectMember {
   id: number;

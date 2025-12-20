@@ -72,9 +72,10 @@ const ProjectDetailPage = () => {
 
   const loadUserRole = async () => {
     try {
-      const members = await getProjectMembers(Number(id));
+      const response = await getProjectMembers(Number(id));
+      const members = response.data || response;
       const currentUserEmail = localStorage.getItem('userEmail');
-      const currentMember = members.find(m => m.userEmail === currentUserEmail);
+      const currentMember = members.find((m: any) => m.userEmail === currentUserEmail);
       if (currentMember) {
         setUserRole(currentMember.role);
       }
@@ -85,8 +86,9 @@ const ProjectDetailPage = () => {
 
   const loadProjectTags = async () => {
     try {
-      const tags = await getProjectTags(Number(id));
-      setProjectTags(tags);
+      const response = await getProjectTags(Number(id));
+      const tags = response.data || response;
+      setProjectTags(Array.isArray(tags) ? tags : []);
     } catch (err) {
       console.error('Error loading tags:', err);
     }

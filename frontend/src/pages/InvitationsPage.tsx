@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
-import { getPendingInvitations, getProjectInvitations, acceptInvitation, declineInvitation, cancelInvitation } from '../services/api';
+import { getPendingInvitations, acceptInvitation, declineInvitation } from '../services/api';
 
 interface Invitation {
   id: number;
@@ -24,7 +24,6 @@ const InvitationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<'received' | 'sent'>('received');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'accepted' | 'declined'>('all');
-  const currentUserEmail = localStorage.getItem('userEmail');
 
   useEffect(() => {
     loadInvitations();
@@ -34,8 +33,9 @@ const InvitationsPage = () => {
     setLoading(true);
     try {
       // Load received invitations
-      const received = await getPendingInvitations();
-      setReceivedInvitations(received);
+      const response = await getPendingInvitations();
+      const received = response.data || response;
+      setReceivedInvitations(Array.isArray(received) ? received : []);
 
       // Load sent invitations - we'll need to fetch from all user's projects
       // For now, we'll just show received. We can enhance this later if needed.
@@ -69,25 +69,7 @@ const InvitationsPage = () => {
     }
   };
 
-  const handleCancel = async (projectId: number, invitationId: number) => {
-    if (!confirm('Are you sure you want to cancel this invitation?')) return;
-    
-    try {
-      await cancelInvitation(projectId, invitationId);
-      alert('Invitation cancelled');
-      loadInvitations();
-    } catch (err) {
-      console.error('Error cancelling invitation:', err);
-      alert('Failed to cancel invitation');
-    }
-  };
-
   const filteredReceivedInvitations = receivedInvitations.filter(inv => {
-    if (statusFilter === 'all') return true;
-    return inv.status.toLowerCase() === statusFilter;
-  });
-
-  const filteredSentInvitations = sentInvitations.filter(inv => {
     if (statusFilter === 'all') return true;
     return inv.status.toLowerCase() === statusFilter;
   });

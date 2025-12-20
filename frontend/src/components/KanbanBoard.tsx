@@ -1,18 +1,6 @@
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
 import { updateTaskStatus } from '../services/api';
-
-interface Task {
-  id: number;
-  title: string;
-  description?: string;
-  dueDate?: string;
-  completed: boolean;
-  status: 'TODO' | 'IN_PROGRESS' | 'DONE';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
-  assignedToEmail?: string;
-  tags?: Array<{id: number; name: string; color: string}>;
-  dependsOnIds?: number[];
-}
+import { Task } from '../types';
 
 interface KanbanBoardProps {
   tasks: Task[];
@@ -60,7 +48,9 @@ const KanbanBoard = ({ tasks, onTaskUpdate, onTaskClick }: KanbanBoardProps) => 
   };
 
   const getTasksByStatus = (status: 'TODO' | 'IN_PROGRESS' | 'DONE') => {
-    return tasks.filter((task) => task.status === status);
+    const filtered = tasks.filter((task) => task.status === status);
+    console.log(`Tasks with status ${status}:`, filtered.length, 'Sample task status:', tasks[0]?.status);
+    return filtered;
   };
 
   return (
