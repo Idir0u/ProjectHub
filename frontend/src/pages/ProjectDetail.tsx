@@ -74,7 +74,8 @@ const ProjectDetailPage = () => {
     try {
       const response = await getProjectMembers(Number(id));
       const members = response.data || response;
-      const currentUserEmail = localStorage.getItem('userEmail');
+      const userStr = localStorage.getItem('user');
+      const currentUserEmail = userStr ? JSON.parse(userStr).email : null;
       const currentMember = members.find((m: any) => m.userEmail === currentUserEmail);
       if (currentMember) {
         setUserRole(currentMember.role);
