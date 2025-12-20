@@ -4,12 +4,14 @@ import com.projecthub.dto.CreateProjectRequest;
 import com.projecthub.dto.ProgressResponse;
 import com.projecthub.dto.ProjectDetailResponse;
 import com.projecthub.dto.ProjectResponse;
+import com.projecthub.dto.TagDTO;
 import com.projecthub.dto.TaskResponse;
 import com.projecthub.exception.NotFoundException;
 import com.projecthub.exception.UnauthorizedException;
 import com.projecthub.model.Project;
 import com.projecthub.model.ProjectMember;
 import com.projecthub.model.ProjectRole;
+import com.projecthub.model.Task;
 import com.projecthub.model.User;
 import com.projecthub.repository.ProjectMemberRepository;
 import com.projecthub.repository.ProjectRepository;
@@ -171,18 +173,41 @@ public class ProjectService {
      */
     private ProjectDetailResponse mapToProjectDetailResponse(Project project) {
         List<TaskResponse> taskResponses = project.getTasks().stream()
-                .map(task -> TaskResponse.builder()
-                        .id(task.getId())
-                        .title(task.getTitle())
-                        .description(task.getDescription())
-                        .dueDate(task.getDueDate())
-                        .completed(task.getCompleted())
-                        .projectId(task.getProject().getId())
-                        .assignedToId(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null)
-                        .assignedToEmail(task.getAssignedTo() != null ? task.getAssignedTo().getEmail() : null)
-                        .createdAt(task.getCreatedAt())
-                        .updatedAt(task.getUpdatedAt())
-                        .build())
+                .map(task -> {
+                    // Map tags
+                    List<TagDTO> tagDTOs = task.getTags().stream()
+                            .map(tag -> new TagDTO(tag.getId(), tag.getName(), tag.getColor(), tag.getProject().getId()))
+                            .collect(Collectors.toList());
+                    
+                    // Map dependencies
+                    List<Long> dependsOnIds = task.getDependsOn().stream()
+                            .map(Task::getId)
+                            .collect(Collectors.toList());
+                    
+                    List<Long> blockedByIds = task.getBlockedBy().stream()
+                            .map(Task::getId)
+                            .collect(Collectors.toList());
+                    
+                    return TaskResponse.builder()
+                            .id(task.getId())
+                            .title(task.getTitle())
+                            .description(task.getDescription())
+                            .dueDate(task.getDueDate())
+                            .completed(task.getCompleted())
+                            .status(task.getStatus())
+                            .priority(task.getPriority())
+                            .recurrencePattern(task.getRecurrencePattern())
+                            .recurrenceEndDate(task.getRecurrenceEndDate())
+                            .projectId(task.getProject().getId())
+                            .assignedToId(task.getAssignedTo() != null ? task.getAssignedTo().getId() : null)
+                            .assignedToEmail(task.getAssignedTo() != null ? task.getAssignedTo().getEmail() : null)
+                            .tags(tagDTOs)
+                            .dependsOnIds(dependsOnIds)
+                            .blockedByIds(blockedByIds)
+                            .createdAt(task.getCreatedAt())
+                            .updatedAt(task.getUpdatedAt())
+                            .build();
+                })
                 .collect(Collectors.toList());
 
         return ProjectDetailResponse.builder()
