@@ -61,9 +61,9 @@ const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberMa
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+    <div className="card bg-base-200 border border-base-300 p-6">
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+        <h2 className="text-xl font-semibold text-base-content">
           Team Members ({members.length})
         </h2>
         {canManageMembers && (
@@ -95,22 +95,22 @@ const MemberManagement = ({ projectId, onInviteClick, onGenerateCode }: MemberMa
         {members.map((member) => (
           <div
             key={member.id}
-            className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-750 rounded-lg"
+            className="flex items-center justify-between p-4 bg-base-100 rounded-lg border border-base-300"
           >
             <div className="flex items-center gap-3">
               <div className="avatar placeholder">
-                <div className="bg-blue-500 text-white rounded-full w-10">
+                <div className="bg-neutral text-neutral-content rounded-full w-10">
                   <span className="text-sm">{member.userEmail.charAt(0).toUpperCase()}</span>
                 </div>
               </div>
               <div>
-                <p className="font-medium text-gray-900 dark:text-white">
+                <p className="font-medium text-base-content">
                   {member.userEmail}
                   {member.userId === currentUser.id && (
-                    <span className="ml-2 text-xs text-gray-500">(You)</span>
+                    <span className="ml-2 text-xs opacity-60">(You)</span>
                   )}
                 </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
+                <p className="text-xs opacity-60">
                   Joined {new Date(member.joinedAt).toLocaleDateString()}
                 </p>
               </div>

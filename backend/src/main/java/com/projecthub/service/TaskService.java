@@ -115,7 +115,7 @@ public class TaskService {
 
     /**
      * Update task completion status.
-     * Validates that the task belongs to a project owned by the user.
+     * Only the assigned user, project owner, or admin can update task completion.
      *
      * @param taskId task ID
      * @param request update details
@@ -126,15 +126,31 @@ public class TaskService {
     public TaskResponse updateTask(Long taskId, UpdateTaskRequest request, Long userId) {
         log.debug("Updating task ID: {} by user ID: {}", taskId, userId);
 
-        Task task = taskRepository.findByIdAndUserId(taskId, userId)
+        Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException("Task", "id", taskId));
+
+        Long projectId = task.getProject().getId();
+
+        // Verify user is a member of the project
+        if (!projectMemberService.isMember(projectId, userId)) {
+            throw new IllegalArgumentException("You don't have access to this project");
+        }
+
+        // Check authorization: must be assigned user, owner, or admin
+        boolean isAssigned = task.getAssignedTo() != null && task.getAssignedTo().getId().equals(userId);
+        boolean isOwnerOrAdmin = projectMemberService.isOwner(projectId, userId) || 
+                                 projectMemberService.isAdmin(projectId, userId);
+
+        if (!isAssigned && !isOwnerOrAdmin) {
+            throw new IllegalArgumentException("Only the assigned user or project admins can update this task");
+        }
 
         if (request.getCompleted() != null) {
             task.setCompleted(request.getCompleted());
         }
 
         Task updatedTask = taskRepository.save(task);
-        log.info("Task {} updated: completed={}", taskId, updatedTask.getCompleted());
+        log.info("Task {} updated by user {}: completed={}", taskId, userId, updatedTask.getCompleted());
 
         return mapToTaskResponse(updatedTask);
     }
@@ -255,6 +271,7 @@ public class TaskService {
 
     /**
      * Update task status (for Kanban board drag-and-drop).
+     * Only the assigned user, project owner, or admin can update task status.
      */
     @Transactional
     public TaskResponse updateTaskStatus(Long taskId, TaskStatus status, Long userId) {
@@ -263,9 +280,20 @@ public class TaskService {
         Task task = taskRepository.findById(taskId)
                 .orElseThrow(() -> new NotFoundException("Task", "id", taskId));
 
+        Long projectId = task.getProject().getId();
+
         // Verify user is a member of the project
-        if (!projectMemberService.isMember(task.getProject().getId(), userId)) {
+        if (!projectMemberService.isMember(projectId, userId)) {
             throw new IllegalArgumentException("You don't have access to this project");
+        }
+
+        // Check authorization: must be assigned user, owner, or admin
+        boolean isAssigned = task.getAssignedTo() != null && task.getAssignedTo().getId().equals(userId);
+        boolean isOwnerOrAdmin = projectMemberService.isOwner(projectId, userId) || 
+                                 projectMemberService.isAdmin(projectId, userId);
+
+        if (!isAssigned && !isOwnerOrAdmin) {
+            throw new IllegalArgumentException("Only the assigned user or project admins can update task status");
         }
 
         task.setStatus(status);
@@ -279,7 +307,7 @@ public class TaskService {
         }
 
         task = taskRepository.save(task);
-        log.info("Task {} status updated to {}", taskId, status);
+        log.info("Task {} status updated to {} by user {}", taskId, status, userId);
 
         return mapToTaskResponse(task);
     }

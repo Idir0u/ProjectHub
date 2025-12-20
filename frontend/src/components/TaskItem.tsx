@@ -162,12 +162,13 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
                     className={`btn btn-xs gap-1 ${task.assignedToEmail ? 'btn-outline btn-primary' : 'btn-ghost'}`}
                     onClick={() => setShowAssignMenu(!showAssignMenu)}
                     disabled={isAssigning}
+                    title={task.assignedToEmail ? `Assigned to ${task.assignedToEmail}` : 'Assign this task'}
                   >
                     <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                     </svg>
                     {task.assignedToEmail ? (
-                      <span className="max-w-[120px] truncate">{task.assignedToEmail}</span>
+                      <span className="max-w-[120px] truncate">{task.assignedToEmail.split('@')[0]}</span>
                     ) : (
                       'Assign'
                     )}
@@ -220,11 +221,11 @@ const TaskItem = ({ task, projectId, currentUserRole, onToggle, onDelete, onAssi
                   )}
                 </div>
               ) : task.assignedToEmail ? (
-                <div className="flex items-center gap-2 text-sm text-base-content/60">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <div className="flex items-center gap-1.5 badge badge-sm badge-outline gap-1" title={`Assigned to ${task.assignedToEmail}`}>
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                   </svg>
-                  <span className="max-w-[150px] truncate">{task.assignedToEmail}</span>
+                  <span className="max-w-[100px] truncate">{task.assignedToEmail.split('@')[0]}</span>
                 </div>
               ) : null}
             </div>

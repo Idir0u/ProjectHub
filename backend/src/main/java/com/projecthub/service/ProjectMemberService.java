@@ -186,6 +186,26 @@ public class ProjectMemberService {
     }
 
     /**
+     * Check if user is the owner of a project.
+     */
+    @Transactional(readOnly = true)
+    public boolean isOwner(Long projectId, Long userId) {
+        return projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                .map(member -> member.getRole() == ProjectRole.OWNER)
+                .orElse(false);
+    }
+
+    /**
+     * Check if user is an admin of a project.
+     */
+    @Transactional(readOnly = true)
+    public boolean isAdmin(Long projectId, Long userId) {
+        return projectMemberRepository.findByProjectIdAndUserId(projectId, userId)
+                .map(member -> member.getRole() == ProjectRole.ADMIN)
+                .orElse(false);
+    }
+
+    /**
      * Verify user can manage members (OWNER or ADMIN).
      */
     public void verifyCanManageMembers(Long projectId, Long userId) {
