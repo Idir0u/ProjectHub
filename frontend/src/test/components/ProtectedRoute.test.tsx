@@ -22,7 +22,7 @@ describe('ProtectedRoute Component', () => {
   const renderWithAuthState = (isAuthenticated: boolean) => {
     // Mock the useAuth hook
     vi.mocked(AuthContext.useAuth).mockReturnValue({
-      user: isAuthenticated ? { id: 1, email: 'test@example.com', username: 'test' } : null,
+      user: isAuthenticated ? { id: 1, email: 'test@example.com' } : null,
       token: isAuthenticated ? 'fake-token' : null,
       login: vi.fn(),
       logout: vi.fn(),

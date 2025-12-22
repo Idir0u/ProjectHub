@@ -1,7 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
-import { ToastProvider } from '../../context/ToastContext'
+import { render, screen, fireEvent, act } from '@testing-library/react'
 import Toast, { ToastMessage } from '../../components/Toast'
 
 describe('Toast Component', () => {

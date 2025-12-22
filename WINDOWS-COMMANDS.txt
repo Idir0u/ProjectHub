@@ -1,0 +1,29 @@
+# Quick Test Commands for Windows PowerShell
+
+## Run all tests
+docker-compose --profile test up --build --abort-on-container-exit; docker-compose --profile test down
+
+## Run backend tests only
+docker-compose --profile test up backend-test --build --abort-on-container-exit; docker-compose --profile test down
+
+## Run frontend tests only
+docker-compose --profile test up frontend-test --build --abort-on-container-exit; docker-compose --profile test down
+
+## Start application
+docker-compose up -d
+
+## Stop application
+docker-compose down
+
+## View logs
+docker-compose logs -f backend
+docker-compose logs -f frontend
+docker-compose logs -f db
+
+## Clean everything
+docker-compose down -v
+docker system prune -f
+
+## Local testing (faster)
+cd backend; mvn test; cd ..
+cd frontend; npm run test:ci; cd ..

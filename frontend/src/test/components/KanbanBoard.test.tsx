@@ -1,9 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
-import { DragDropContext } from '@hello-pangea/dnd';
 import KanbanBoard from '../../components/KanbanBoard';
 import { ToastProvider } from '../../context/ToastContext';
-import * as api from '../../services/api';
 
 vi.mock('../../services/api');
 
