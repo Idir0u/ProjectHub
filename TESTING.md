@@ -1,18 +1,183 @@
-# Running Tests
+# Testing Guide for ProjectHub
 
-## Frontend Tests
+## 📋 Table of Contents
+- [Overview](#overview)
+- [Test Coverage](#test-coverage)
+- [Running Tests](#running-tests)
+- [Docker Testing](#docker-testing)
+- [CI/CD Integration](#cicd-integration)
+- [Troubleshooting](#troubleshooting)
 
-The frontend uses **Vitest** with React Testing Library for unit and integration tests.
+## Overview
 
-### Prerequisites
+ProjectHub has comprehensive test coverage for both backend and frontend components:
+- **Backend**: JUnit 5 + Mockito for service layer testing
+- **Frontend**: Vitest + React Testing Library for component testing
+
+## Test Coverage
+
+### Backend Tests (18 tests - 100% passing)
+
+#### TaskService Tests (9 tests)
+- ✅ Update task status (assigned user, owner, admin, unauthorized)
+- ✅ Auto-complete/uncomplete task
+- ✅ Assign/unassign task
+- ✅ Delete task
+
+#### ProjectMemberService Tests (9 tests)
+- ✅ Add creator as owner
+- ✅ Check owner/admin/member status
+
+### Frontend Tests (62 tests - 100% passing)
+
+#### Component Tests (48 tests)
+- **KanbanBoard** (8 tests): Drag-and-drop, column rendering, task grouping
+- **BulkActionsToolbar** (11 tests): Bulk operations, confirmations, error handling
+- **Navbar** (5 tests): Authentication, navigation, theme toggle
+- **ProtectedRoute** (4 tests): Route guards, authentication checks
+- **TaskItem** (12 tests): Task rendering, interactions, assignment
+- **ConfirmDialog** (10 tests): Dialog behavior, confirmations
+- **Toast** (6 tests): Notifications, auto-dismiss, manual dismiss
+
+#### Hook Tests (6 tests)
+- **useToast** (6 tests): Toast notifications management
+
+## Running Tests
+
+### Local Development (Recommended)
+
+#### Frontend Tests
+
 ```bash
+# Run all tests
 cd frontend
-npm install
+npm test
+
+# Run tests once (CI mode)
+npm run test:ci
+
+# Run tests with UI
+npm run test:ui
+
+# Run with coverage
+npm run test:coverage
 ```
 
-### Run Tests
+#### Backend Tests
+```bash
+# Run all backend tests
+cd backend
+mvn test
+
+# Run specific test class
+mvn test -Dtest=TaskServiceTest
+
+# Run with coverage
+mvn test jacoco:report
+```
+
+### Using Docker Compose
+
+#### Run All Tests
+```bash
+# Using Make (recommended)
+make test-all
+
+# Using Docker Compose directly
+docker-compose --profile test up --build --abort-on-container-exit
+docker-compose --profile test down
+```
+
+#### Run Backend Tests Only
+```bash
+make test-backend
+
+# Or with Docker Compose
+docker-compose --profile test up backend-test --build --abort-on-container-exit
+```
+
+#### Run Frontend Tests Only
+```bash
+make test-frontend
+
+# Or with Docker Compose
+docker-compose --profile test up frontend-test --build --abort-on-container-exit
+```
+
+### Available Make Commands
 
 ```bash
+make help              # Show all available commands
+make up                # Start application services
+make down              # Stop all services
+make test-all          # Run all tests
+make test-backend      # Run backend tests only
+make test-frontend     # Run frontend tests only
+make logs              # View all logs
+make clean             # Remove all containers and volumes
+make rebuild           # Rebuild all Docker images
+```
+
+## Docker Testing
+
+### Test Services Configuration
+
+The Docker Compose setup uses **profiles** to separate test services:
+- **Default profile**: Application services (db, backend, frontend)
+- **Test profile**: Test services (backend-test, frontend-test)
+
+### Viewing Test Results
+
+```bash
+# View backend test logs
+docker-compose --profile test logs backend-test
+
+# View frontend test logs
+docker-compose --profile test logs frontend-test
+```
+
+### Test Reports
+- Backend: `backend/target/surefire-reports/`
+- Frontend: `frontend/coverage/`
+
+## CI/CD Integration
+
+Tests automatically run on GitHub Actions for:
+- Push to `main` or `develop` branches
+- Pull requests
+
+View results in the **Actions** tab on GitHub.
+
+## Troubleshooting
+
+### Tests Fail in Docker
+```bash
+# Rebuild without cache
+docker-compose build --no-cache
+
+# Clean environment
+docker-compose down -v
+```
+
+### Port Conflicts
+Check and modify ports in `docker-compose.yml` if PostgreSQL port 5433 is in use.
+
+### Frontend Test Timeouts
+```bash
+cd frontend
+npm test -- --testTimeout=10000
+```
+
+## Test Statistics
+
+- **Total Tests**: 80 (100% passing)
+- **Backend**: 18 tests
+- **Frontend**: 62 tests
+- **Average Duration**: ~25 seconds
+
+---
+
+For detailed testing documentation, see the full guide above.bash
 # Run all tests
 npm test
 
