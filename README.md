@@ -72,7 +72,7 @@ The easiest way to run the entire application:
 
 ```bash
 # Clone the repository
-git clone <your-repo-url>
+git clone https://github.com/Idir0u/ProjectHub
 cd ProjectHub
 
 # Start all services (database, backend, frontend)
@@ -81,7 +81,7 @@ docker-compose up -d
 
 ### 2️⃣ Access the Application
 
-- **Frontend**: http://localhost:3000
+- **Frontend**: http://localhost
 - **Backend API**: http://localhost:8080
 - **Database**: localhost:5432
 
@@ -159,7 +159,6 @@ make test-frontend
 make clean
 ```
 
-For detailed testing documentation, see [DOCKER-TESTING.md](./DOCKER-TESTING.md).
 
 ## 🛠️ Alternative: Manual Setup (Without Docker)
 
@@ -198,7 +197,7 @@ npm install
 npm run dev
 ```
 
-Frontend will start on http://localhost:5173
+Frontend will start on http://localhost:5173 (dev mode) or http://localhost (production)
 
 ## 📡 API Endpoints
 
@@ -501,8 +500,8 @@ This project is developed for educational purposes.
 ## 👨‍💻 Author
 
 **Your Name**
-- GitHub: [@yourusername](https://github.com/yourusername)
-- Email: your.email@example.com
+- GitHub: [@Idir0u](https://github.com/Idir0u)
+- Email: oubezaidir@gmail.com
 
 ## 🙏 Acknowledgments
 
