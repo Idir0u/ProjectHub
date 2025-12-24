@@ -50,31 +50,38 @@ describe('Navbar Component', () => {
   it('renders the brand name', () => {
     renderNavbar(true);
     
-    expect(screen.getByText(/ProjectHub/)).toBeInTheDocument();
+    expect(screen.getByText('ProjectHub')).toBeInTheDocument();
   });
 
   it('shows user email when authenticated', () => {
     renderNavbar(true);
     
-    // Email appears in multiple places (badge + dropdown)
+    // Email appears twice: in badge and dropdown menu
     const emailElements = screen.getAllByText('test@example.com');
-    expect(emailElements.length).toBeGreaterThan(0);
+    expect(emailElements.length).toBe(2);
+  }); 
+
+  it('shows Dashboard button when authenticated', () => {
+    renderNavbar(true);
+    
+    // Dashboard appears in quick nav and dropdown
+    const dashboardButtons = screen.getAllByText('Dashboard');
+    expect(dashboardButtons.length).toBeGreaterThan(0);
   });
 
   it('shows logout button when authenticated', () => {
     renderNavbar(true);
     
-    const logoutButtons = screen.getAllByText('Logout');
-    expect(logoutButtons.length).toBeGreaterThan(0);
+    expect(screen.getByText('Logout')).toBeInTheDocument();
   });
 
   it('logs out user when logout is clicked', () => {
     renderNavbar(true);
     
-    const logoutButtons = screen.getAllByText('Logout');
-    fireEvent.click(logoutButtons[0]);
+    const logoutButton = screen.getByText('Logout');
+    fireEvent.click(logoutButton);
     
-    expect(localStorage.getItem('token')).toBeUndefined();
+    expect(localStorage.getItem('token')).toBeNull();
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
