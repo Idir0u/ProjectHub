@@ -56,7 +56,9 @@ describe('Navbar Component', () => {
   it('shows user email when authenticated', () => {
     renderNavbar(true);
     
-    expect(screen.getByText('test@example.com')).toBeInTheDocument();
+    // Email appears in multiple places (badge + dropdown)
+    const emailElements = screen.getAllByText('test@example.com');
+    expect(emailElements.length).toBeGreaterThan(0);
   });
 
   it('shows logout button when authenticated', () => {
