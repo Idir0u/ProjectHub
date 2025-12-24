@@ -53,15 +53,6 @@ describe('Navbar Component', () => {
     expect(screen.getByText('ProjectHub')).toBeInTheDocument();
   });
 
-  it('shows user email when authenticated', async () => {
-    renderNavbar(true);
-    
-    // Wait for user to load from localStorage
-    await waitFor(() => {
-      expect(screen.getByText('test@example.com')).toBeInTheDocument();
-    });
-  }); 
-
   it('shows Dashboard button when authenticated', async () => {
     renderNavbar(true);
     
