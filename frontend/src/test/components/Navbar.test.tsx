@@ -53,10 +53,10 @@ describe('Navbar Component', () => {
     expect(screen.getByText(/ProjectHub/)).toBeInTheDocument();
   });
 
-  it('shows welcome message when authenticated', () => {
+  it('shows user email when authenticated', () => {
     renderNavbar(true);
     
-    expect(screen.getByText(/Welcome,/)).toBeInTheDocument();
+    expect(screen.getByText('test@example.com')).toBeInTheDocument();
   });
 
   it('shows logout button when authenticated', () => {
