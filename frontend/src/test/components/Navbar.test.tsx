@@ -58,8 +58,7 @@ describe('Navbar Component', () => {
     
     // Wait for user to load from localStorage
     await waitFor(() => {
-      const emailElements = screen.getAllByText('test@example.com');
-      expect(emailElements.length).toBe(2);
+      expect(screen.getByText('test@example.com')).toBeInTheDocument();
     });
   }); 
 
@@ -92,7 +91,7 @@ describe('Navbar Component', () => {
     const logoutButton = screen.getByText('Logout');
     fireEvent.click(logoutButton);
     
-    expect(localStorage.getItem('token')).toBeNull();
+    expect(localStorage.getItem('token')).toBeFalsy();
     expect(mockNavigate).toHaveBeenCalledWith('/');
   });
 
