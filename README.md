@@ -4,7 +4,7 @@ A full-stack project management application built with modern technologies, feat
 
 ## 🎥 Demo Video
 
-**[Watch Demo Video Here](YOUR_VIDEO_LINK_HERE)**
+**[Watch Demo Video Here](https://drive.google.com/drive/folders/18-hfkDBs1-6ANJElleXhsDVJ7ZvT9GZ8)**
 
 > 📹 A 2-minute screen capture demonstrating the application's key features, technical implementation, and design decisions.
 
