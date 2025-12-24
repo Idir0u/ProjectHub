@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import Navbar from '../../components/Navbar';
 import { AuthProvider } from '../../context/AuthContext';
@@ -53,30 +53,41 @@ describe('Navbar Component', () => {
     expect(screen.getByText('ProjectHub')).toBeInTheDocument();
   });
 
-  it('shows user email when authenticated', () => {
+  it('shows user email when authenticated', async () => {
     renderNavbar(true);
     
-    // Email appears twice: in badge and dropdown menu
-    const emailElements = screen.getAllByText('test@example.com');
-    expect(emailElements.length).toBe(2);
+    // Wait for user to load from localStorage
+    await waitFor(() => {
+      const emailElements = screen.getAllByText('test@example.com');
+      expect(emailElements.length).toBe(2);
+    });
   }); 
 
-  it('shows Dashboard button when authenticated', () => {
+  it('shows Dashboard button when authenticated', async () => {
     renderNavbar(true);
     
-    // Dashboard appears in quick nav and dropdown
-    const dashboardButtons = screen.getAllByText('Dashboard');
-    expect(dashboardButtons.length).toBeGreaterThan(0);
+    // Wait for authentication to complete
+    await waitFor(() => {
+      const dashboardButtons = screen.getAllByText('Dashboard');
+      expect(dashboardButtons.length).toBeGreaterThan(0);
+    });
   });
 
-  it('shows logout button when authenticated', () => {
+  it('shows logout button when authenticated', async () => {
     renderNavbar(true);
     
-    expect(screen.getByText('Logout')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Logout')).toBeInTheDocument();
+    });
   });
 
-  it('logs out user when logout is clicked', () => {
+  it('logs out user when logout is clicked', async () => {
     renderNavbar(true);
+    
+    // Wait for user to be loaded
+    await waitFor(() => {
+      expect(screen.getByText('Logout')).toBeInTheDocument();
+    });
     
     const logoutButton = screen.getByText('Logout');
     fireEvent.click(logoutButton);
